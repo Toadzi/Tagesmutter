@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<style>
+    body { font-family: DejaVu Sans, sans-serif; font-size: 10pt; color: #111; margin: 0; padding: 0; }
+    h1 { font-size: 13pt; text-transform: uppercase; border-bottom: 2px solid #111; padding-bottom: 4px; margin-bottom: 12px; }
+    h2 { font-size: 10pt; text-transform: uppercase; font-weight: bold; border-bottom: 1px solid #555; padding-bottom: 2px; margin: 14px 0 6px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+    td { border: 1px solid #aaa; padding: 4px 6px; vertical-align: top; }
+    td.label { background: #f5f5f5; font-weight: bold; width: 35%; white-space: nowrap; }
+    .textarea-row td { height: 50px; }
+    .wide-row td { height: 70px; }
+    .badge { display: inline-block; border: 1px solid #555; border-radius: 4px; padding: 1px 6px; margin-right: 4px; font-size: 9pt; }
+    .footer-table td { border: 1px solid #aaa; padding: 6px; }
+    .sig-box { height: 40px; border: 1px solid #aaa; margin-top: 4px; }
+    .info-box { border: 1px solid #3b82f6; background: #eff6ff; padding: 6px 8px; border-radius: 4px; margin: 8px 0; font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<h1>Unfallbuch</h1>
+
+<table>
+    <tr>
+        <td class="label">Kind</td>
+        <td>{{ kind.vorname }} {{ kind.nachname }}</td>
+        <td class="label">Datum des Unfalls</td>
+        <td>{{ unfall.datum|date("d.m.Y") }}</td>
+    </tr>
+    <tr>
+        <td class="label">Uhrzeit</td>
+        <td>{{ unfall.uhrzeit ?: '–' }}</td>
+        <td class="label">Ort des Unfalls</td>
+        <td>{{ unfall.ort ?: '–' }}</td>
+    </tr>
+    <tr>
+        <td class="label">Datum/Uhrzeit gemeldet</td>
+        <td colspan="3">{{ unfall.gemeldet_am ?: '–' }}</td>
+    </tr>
+</table>
+
+<h2>Einzelheiten des Vorfalls / Unfalls</h2>
+<table class="wide-row">
+    <tr><td>{{ unfall.einzelheiten ?: '' }}</td></tr>
+</table>
+
+<h2>Zeuge(n)</h2>
+<table>
+    <tr>
+        <td class="label" style="width:25%;">Name</td>
+        <td>{{ unfall.zeuge1_name ?: '' }}</td>
+        <td class="label" style="width:20%;">Kontakt</td>
+        <td>{{ unfall.zeuge1_kontakt ?: '' }}</td>
+    </tr>
+    <tr>
+        <td class="label">Name</td>
+        <td>{{ unfall.zeuge2_name ?: '' }}</td>
+        <td class="label">Kontakt</td>
+        <td>{{ unfall.zeuge2_kontakt ?: '' }}</td>
+    </tr>
+    <tr>
+        <td class="label">Name</td>
+        <td>{{ unfall.zeuge3_name ?: '' }}</td>
+        <td class="label">Kontakt</td>
+        <td>{{ unfall.zeuge3_kontakt ?: '' }}</td>
+    </tr>
+</table>
+
+<h2>Art und Ausmaß von Verletzungen</h2>
+<table class="wide-row">
+    <tr><td>{{ unfall.verletzungen ?: '' }}</td></tr>
+</table>
+
+<table>
+    <tr>
+        <td class="label" style="width:40%;">Welche Maßnahmen wurden ergriffen?</td>
+        <td>
+            {% set labels = {krankenwagen: 'Krankenwagen gerufen', erste_hilfe: 'Erste Hilfe', krankenhaus: 'Krankenhaus', polizei: 'Polizei'} %}
+            {% for m in massnahmen %}<span class="badge">{{ labels[m] ?? m }}</span>{% endfor %}
+            {% if unfall.massnahmen_sonstige %}<br>Sonstiges: {{ unfall.massnahmen_sonstige }}{% endif %}
+        </td>
+    </tr>
+</table>
+
+<h2>Maßnahmen die den Unfall hätten verhindern können</h2>
+<table class="wide-row">
+    <tr><td>{{ unfall.praevention ?: '' }}</td></tr>
+</table>
+
+{% if unfall.unfallkasse_gemeldet %}
+<div class="info-box">✓ Dieser Unfall wurde der Unfallkasse gemeldet.</div>
+{% else %}
+<div class="info-box">⚠ Prüfen: Muss dieser Unfall der Unfallkasse gemeldet werden? (Ärztliche Behandlung oder Betreuungsausfall &gt; 3 Tage)</div>
+{% endif %}
+
+<h2>Abschluss</h2>
+<table class="footer-table">
+    <tr>
+        <td style="width:50%;">
+            <strong>Formular ausgefüllt von:</strong><br>
+            {{ unfall.ausgefuellt_von ?: '' }}<br>
+            <small>Datum: {{ unfall.ausgefuellt_datum ?: '' }}</small>
+        </td>
+        <td style="width:50%;">
+            <strong>Genehmigt durch:</strong><br>
+            {{ unfall.genehmigt_von ?: '' }}<br>
+            <small>Datum: {{ unfall.genehmigt_datum ?: '' }}</small>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <strong>Unterschrift:</strong><br>
+            <span style="font-style:italic;">{{ unfall.unterschrift_stempel ?: '' }}</span>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

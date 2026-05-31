@@ -1,0 +1,79 @@
+{% extends "layout.twig" %}
+{% set active_page = 'admin' %}
+
+{% block title %}{{ is_new ? 'Benutzer anlegen' : 'Benutzer bearbeiten' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 600px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ base_path }}/admin/benutzer" class="text-decoration-none">Benutzer</a></li>
+            <li class="breadcrumb-item active">{{ is_new ? 'Neu' : 'Bearbeiten' }}</li>
+        </ol>
+    </nav>
+
+    <h1 class="h3 fw-bold mb-4">{{ is_new ? 'Benutzer anlegen' : 'Benutzer bearbeiten' }}</h1>
+
+    {% if fehler %}
+    <div class="alert alert-danger py-2"><i class="bi bi-exclamation-triangle me-1"></i>{{ fehler }}</div>
+    {% endif %}
+
+    <form method="post" action="{{ base_path ~ (is_new ? '/admin/benutzer/neu' : '/admin/benutzer/' ~ benutzer.id ~ '/bearbeiten') }}">
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Name *</label>
+                        <input type="text" name="name" class="form-control" value="{{ benutzer.name ?? '' }}" required placeholder="z.B. Maria Müller">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Benutzername *</label>
+                        <input type="text" name="benutzername" class="form-control" value="{{ benutzer.benutzername ?? '' }}" required placeholder="z.B. maria.mueller" autocomplete="off">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Rolle *</label>
+                        <select name="rolle" class="form-select">
+                            <option value="admin" {{ (benutzer.rolle ?? '') == 'admin' ? 'selected' : '' }}>Admin (Vollzugriff)</option>
+                            <option value="eltern" {{ (benutzer.rolle ?? 'eltern') == 'eltern' ? 'selected' : '' }}>Eltern (Leserecht)</option>
+                            <option value="leserecht" {{ (benutzer.rolle ?? '') == 'leserecht' ? 'selected' : '' }}>Leserecht (z.B. Großeltern)</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Kind zuordnen <small class="text-muted">(für Eltern/Leserecht)</small></label>
+                        <select name="kind_id" class="form-select">
+                            <option value="">— kein Kind (Admin) —</option>
+                            {% for kind in kinder %}
+                            <option value="{{ kind.id }}" {{ (benutzer.kind_id ?? '') == kind.id ? 'selected' : '' }}>
+                                {{ kind.vorname }} {{ kind.nachname }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">
+                            Passwort {% if not is_new %}<small class="text-muted">(leer = unverändert)</small>{% else %}*{% endif %}
+                        </label>
+                        <input type="password" name="passwort" class="form-control" {{ is_new ? 'required' : '' }}
+                               placeholder="Mindestens 6 Zeichen" autocomplete="new-password">
+                    </div>
+                    {% if not is_new %}
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input type="checkbox" name="aktiv" value="1" class="form-check-input" id="aktiv" {{ (benutzer.aktiv ?? 1) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="aktiv">Benutzer ist aktiv</label>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-sage">
+                {{ is_new ? 'Anlegen' : 'Speichern' }}
+            </button>
+            <a href="{{ base_path }}/admin/benutzer" class="btn btn-outline-secondary">Abbrechen</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

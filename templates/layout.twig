@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tagesmutter{% endblock %} — {{ app_settings.app_subtitle ?? 'Verwaltung' }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Emerald — kräftiger, moderner als altes Sage-Grün */
+            --sage:        #10b981;
+            --sage-light:  #d1fae5;
+            --sage-dark:   #065f46;
+
+            /* Amber — wärmer und gesättigter */
+            --warm:        #f59e0b;
+            --warm-light:  #fef9c3;
+
+            /* Violet — markantes Akzent für Berichte/PDF */
+            --brand:       #7c3aed;
+            --brand-light: #ede9fe;
+
+            /* Sidebar (dark) */
+            --sb-bg:         #0f172a;
+            --sb-hover:      rgba(255,255,255,0.06);
+            --sb-active-bg:  rgba(16,185,129,0.14);
+            --sb-active-clr: #34d399;
+            --sb-text:       #94a3b8;
+            --sb-text-dim:   #475569;
+            --sb-border:     rgba(255,255,255,0.07);
+
+            /* Surfaces */
+            --surface:  #ffffff;
+            --surface-2:#f8fafc;
+            --border:   #e2e8f0;
+        }
+
+        /* ── Base ─────────────────────────────────────────── */
+        body { background: #f1f5f9; min-height: 100vh; font-family: system-ui, -apple-system, sans-serif; }
+
+        /* ── Sidebar ──────────────────────────────────────── */
+        .sidebar {
+            width: 260px;
+            background: var(--sb-bg);
+            position: fixed; top:0; bottom:0; left:0;
+            z-index: 1040;
+            transition: transform 0.3s ease;
+            display: flex; flex-direction: column;
+        }
+        .sidebar-logo {
+            padding: 1.25rem 1.25rem 1rem;
+            border-bottom: 1px solid var(--sb-border);
+            display: flex; align-items: center; gap: 0.75rem;
+            flex-shrink: 0;
+        }
+        .sidebar-logo-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1rem; flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(16,185,129,0.35);
+        }
+        .sidebar-logo-title { font-size: 0.95rem; font-weight: 700; color: #f8fafc; line-height: 1.2; }
+        .sidebar-logo-sub   { font-size: 0.72rem; color: var(--sb-text); }
+
+        /* Nav */
+        .sidebar-nav { padding: 0.75rem 0.75rem; flex: 1; overflow-y: auto; }
+        .nav-section-label {
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+            color: var(--sb-text-dim); text-transform: uppercase;
+            padding: 0.6rem 0.75rem 0.3rem; margin-top: 0.25rem;
+        }
+        .sidebar-nav .nav-link {
+            display: flex; align-items: center; gap: 0.7rem;
+            padding: 0.55rem 0.9rem; border-radius: 8px;
+            color: var(--sb-text); font-size: 0.875rem; font-weight: 500;
+            transition: all 0.15s; margin-bottom: 1px; text-decoration: none;
+        }
+        .sidebar-nav .nav-link:hover  { background: var(--sb-hover); color: #f8fafc; }
+        .sidebar-nav .nav-link.active { background: var(--sb-active-bg); color: var(--sb-active-clr); }
+        .sidebar-nav .nav-link i { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
+
+        /* User footer */
+        .sidebar-footer {
+            padding: 0.875rem 1rem;
+            border-top: 1px solid var(--sb-border);
+            flex-shrink: 0;
+        }
+        .sidebar-footer .user-avatar {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: linear-gradient(135deg, #1e3a5f, #0f2744);
+            border: 1px solid rgba(255,255,255,0.12);
+            display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; font-weight: 700; font-size: 0.8rem; flex-shrink: 0;
+        }
+        .sidebar-footer .user-name { font-size: 0.82rem; font-weight: 600; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar-footer .user-role { font-size: 0.7rem; color: var(--sb-text); }
+        .sidebar-footer .logout-btn { color: var(--sb-text-dim); transition: color 0.15s; }
+        .sidebar-footer .logout-btn:hover { color: #f87171; }
+
+        /* ── Main ─────────────────────────────────────────── */
+        .main-content { margin-left: 260px; min-height: 100vh; }
+        .top-bar {
+            display: none; background: var(--sb-bg);
+            border-bottom: 1px solid var(--sb-border);
+            padding: 0.75rem 1rem;
+            position: sticky; top: 0; z-index: 1030;
+        }
+
+        /* ── Cards ────────────────────────────────────────── */
+        .card {
+            border: 1px solid var(--border); border-radius: 14px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 0 0 1px rgba(0,0,0,0.02);
+            background: var(--surface);
+        }
+        .card-header {
+            background: var(--surface); border-bottom: 1px solid #f0f4f8;
+            border-radius: 14px 14px 0 0 !important;
+            padding: 0.875rem 1.25rem;
+        }
+
+        /* ── Buttons ──────────────────────────────────────── */
+        .btn-sage  { background: var(--sage);  color: #fff; border: none; font-weight: 500; }
+        .btn-sage:hover  { background: #059669; color: #fff; }
+        .btn-warm  { background: var(--warm);  color: #fff; border: none; font-weight: 500; }
+        .btn-warm:hover  { background: #d97706; color: #fff; }
+        .btn-brand { background: var(--brand); color: #fff; border: none; font-weight: 500; }
+        .btn-brand:hover { background: #6d28d9; color: #fff; }
+
+        /* ── Badges ───────────────────────────────────────── */
+        .badge-sage { background: var(--sage-light); color: var(--sage-dark); }
+        .badge-warm { background: var(--warm-light);  color: #92400e; }
+
+        /* ── Avatars ──────────────────────────────────────── */
+        .avatar { width:48px; height:48px; border-radius:12px; object-fit:cover; flex-shrink:0; }
+        .avatar-placeholder {
+            width:48px; height:48px; border-radius:12px; flex-shrink:0;
+            background: linear-gradient(135deg, #a7f3d0, #6ee7b7);
+            display:flex; align-items:center; justify-content:center;
+            color: var(--sage-dark); font-weight: 700; font-size: 1rem;
+        }
+        .avatar-lg { width:64px; height:64px; font-size:1.25rem; }
+
+        /* ── Stat icon ────────────────────────────────────── */
+        .stat-icon {
+            width:44px; height:44px; border-radius:12px;
+            display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+        }
+
+        /* ── Forms ────────────────────────────────────────── */
+        .stimmung-select label { cursor: pointer; }
+        .stimmung-select input:checked + span { opacity: 1 !important; }
+        .kategorie-check input:checked + span { background: var(--sage-light) !important; color: var(--sage-dark) !important; }
+
+        /* ── Tabs ─────────────────────────────────────────── */
+        .nav-tabs .nav-link { border-radius: 0; font-size: 0.875rem; color: #64748b; }
+        .nav-tabs .nav-link.active { color: var(--sage-dark); border-color: transparent transparent var(--sage); font-weight: 600; }
+
+        /* ── Admin sub-nav ────────────────────────────────── */
+        .admin-subnav {
+            display: flex; gap: 0.25rem; flex-wrap: wrap;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px; padding: 0.35rem; margin-bottom: 1.5rem;
+        }
+        .admin-subnav a {
+            display: flex; align-items: center; gap: 0.45rem;
+            padding: 0.45rem 0.9rem; border-radius: 8px;
+            font-size: 0.85rem; font-weight: 500; color: #64748b;
+            text-decoration: none; transition: all 0.15s;
+        }
+        .admin-subnav a:hover  { background: #f1f5f9; color: #1e293b; }
+        .admin-subnav a.active { background: var(--sage); color: #fff; }
+        .admin-subnav a i { font-size: 0.95rem; }
+
+        /* ── Toast notifications ─────────────────────────── */
+        .toast-stack { position:fixed; bottom:1.25rem; right:1.25rem; z-index:9999; display:flex; flex-direction:column; gap:0.5rem; }
+        .app-toast {
+            display:flex; align-items:center; gap:0.75rem;
+            padding:0.75rem 1rem; border-radius:12px; min-width:240px; max-width:360px;
+            font-size:0.875rem; font-weight:500;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            animation: toastIn 0.25s ease;
+        }
+        .app-toast-success { background:#10b981; color:#fff; }
+        .app-toast-error   { background:#ef4444; color:#fff; }
+        .app-toast i { font-size:1.1rem; flex-shrink:0; }
+        .app-toast span { flex:1; }
+        .app-toast-close { background:none; border:none; color:rgba(255,255,255,0.7); cursor:pointer; padding:0; font-size:1.1rem; line-height:1; flex-shrink:0; }
+        .app-toast-close:hover { color:#fff; }
+        @keyframes toastIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes toastOut { to   { opacity:0; transform:translateY(10px); } }
+
+        /* ── Mobile overlay ───────────────────────────────── */
+        .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1035; backdrop-filter:blur(2px); }
+
+        @media (max-width: 991.98px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .overlay.show { display: block; }
+            .main-content { margin-left: 0; }
+            .top-bar { display: flex; align-items: center; justify-content: space-between; }
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon"><i class="bi bi-house-heart"></i></div>
+            <div style="min-width:0;">
+                <div class="sidebar-logo-title">{{ app_settings.app_name ?? 'Tagesmutter' }}</div>
+                <div class="sidebar-logo-sub">{{ app_settings.app_subtitle ?? 'Verwaltung' }}</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Hauptmenü</div>
+            <a href="{{ base_path }}/" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-grid-1x2-fill"></i> Dashboard
+            </a>
+            <a href="{{ base_path }}/kinder" class="nav-link {% if active_page == 'kinder' %}active{% endif %}">
+                <i class="bi bi-people-fill"></i> Kinder
+            </a>
+            <a href="{{ base_path }}/unfaelle" class="nav-link {% if active_page == 'unfaelle' %}active{% endif %}">
+                <i class="bi bi-exclamation-triangle-fill"></i> Unfallbuch
+            </a>
+
+            {% if session_rolle == 'admin' %}
+            <div class="nav-section-label" style="margin-top:0.75rem;">Administration</div>
+            <a href="{{ base_path }}/admin" class="nav-link {% if active_page in ['admin','admin_einstellungen','textbausteine'] %}active{% endif %}">
+                <i class="bi bi-shield-fill"></i> Verwaltung
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar">{{ session_user_name|first|upper }}</div>
+                <div style="flex:1;min-width:0;">
+                    <div class="user-name">{{ session_user_name }}</div>
+                    <div class="user-role">
+                        {% if session_rolle == 'admin' %}Admin{% elseif session_rolle == 'eltern' %}Eltern{% else %}Leserecht{% endif %}
+                    </div>
+                </div>
+                <a href="{{ base_path }}/logout" class="logout-btn" title="Abmelden"><i class="bi bi-box-arrow-right fs-5"></i></a>
+            </div>
+        </div>
+    </aside>
+
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- Mobile top bar -->
+    <div class="top-bar">
+        <div class="d-flex align-items-center gap-2">
+            <div class="sidebar-logo-icon" style="width:30px;height:30px;border-radius:7px;font-size:0.8rem;">
+                <i class="bi bi-house-heart"></i>
+            </div>
+            <span class="fw-bold text-white">{{ app_settings.app_name ?? 'Tagesmutter' }}</span>
+        </div>
+        <button class="btn btn-sm" style="color:#94a3b8;border:1px solid rgba(255,255,255,0.1);" onclick="toggleSidebar()">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+    </div>
+
+    <div class="main-content">
+        <div class="p-3 p-lg-4">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    {% if flash_success or flash_error %}
+    <div class="toast-stack" id="toastStack">
+        {% if flash_success %}
+        <div class="app-toast app-toast-success" id="toast-s">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>{{ flash_success }}</span>
+            <button class="app-toast-close" onclick="dismissToast('toast-s')">✕</button>
+        </div>
+        {% endif %}
+        {% if flash_error %}
+        <div class="app-toast app-toast-error" id="toast-e">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span>{{ flash_error }}</span>
+            <button class="app-toast-close" onclick="dismissToast('toast-e')">✕</button>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+            document.getElementById('overlay').classList.toggle('show');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('show');
+            document.getElementById('overlay').classList.remove('show');
+        }
+        function dismissToast(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.style.animation = 'toastOut 0.2s ease forwards';
+            setTimeout(() => el.remove(), 210);
+        }
+        // Auto-dismiss nach 4 Sekunden
+        document.addEventListener('DOMContentLoaded', () => {
+            ['toast-s','toast-e'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) setTimeout(() => dismissToast(id), 4000);
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

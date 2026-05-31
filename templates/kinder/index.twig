@@ -1,0 +1,67 @@
+{% extends "layout.twig" %}
+{% set active_page = 'kinder' %}
+
+{% block title %}Kinder{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1200px;">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Kinder</h1>
+            <p class="text-muted mb-0">{{ kinder|length }} {{ kinder|length == 1 ? 'Kind' : 'Kinder' }}</p>
+        </div>
+        <a href="{{ base_path }}/kinder/neu" class="btn btn-sage">
+            <i class="bi bi-plus-lg me-1"></i> Kind hinzufügen
+        </a>
+    </div>
+
+    <!-- Filter -->
+    <div class="d-flex gap-2 mb-3">
+        <a href="{{ base_path }}/kinder?filter=aktiv" class="badge text-decoration-none {{ filter == 'aktiv' ? 'badge-sage' : 'bg-light text-dark' }} px-3 py-2">Aktiv</a>
+        <a href="{{ base_path }}/kinder?filter=inaktiv" class="badge text-decoration-none {{ filter == 'inaktiv' ? 'badge-sage' : 'bg-light text-dark' }} px-3 py-2">Inaktiv</a>
+        <a href="{{ base_path }}/kinder?filter=alle" class="badge text-decoration-none {{ filter == 'alle' ? 'badge-sage' : 'bg-light text-dark' }} px-3 py-2">Alle</a>
+    </div>
+
+    {% if kinder|length > 0 %}
+    <div class="card">
+        <div class="list-group list-group-flush">
+            {% for kind in kinder %}
+            <div class="list-group-item d-flex align-items-center gap-3 py-3 px-3">
+                <a href="{{ base_path }}/kinder/{{ kind.id }}" class="text-decoration-none d-flex align-items-center gap-3 flex-grow-1 min-w-0">
+                    {% if kind.foto_pfad %}
+                    <img src="{{ base_path }}/uploads/{{ kind.foto_pfad }}" alt="{{ kind.vorname }}" class="avatar" style="width:44px;height:44px;">
+                    {% else %}
+                    <div class="avatar-placeholder" style="width:44px;height:44px;font-size:0.9rem;">
+                        {{ kind.vorname|first }}{{ kind.nachname|first }}
+                    </div>
+                    {% endif %}
+                    <div class="min-w-0">
+                        <div class="fw-semibold text-dark">{{ kind.vorname }} {{ kind.nachname }}</div>
+                        <small class="text-muted">geb. {{ kind.geburtsdatum|date("d.m.Y") }}{% if kind.tagebuch_count > 0 %} · {{ kind.tagebuch_count }} Einträge{% endif %}</small>
+                    </div>
+                </a>
+                <div class="d-flex gap-1 flex-shrink-0">
+                    <a href="{{ base_path }}/kinder/{{ kind.id }}?tab=tagebuch" class="btn btn-sm btn-light" title="Tagebuch öffnen">
+                        <i class="bi bi-journal-text"></i>
+                    </a>
+                    <a href="{{ base_path }}/kinder/{{ kind.id }}/anwesenheit" class="btn btn-sm btn-light" title="Anwesenheit">
+                        <i class="bi bi-calendar-check"></i>
+                    </a>
+                    <a href="{{ base_path }}/kinder/{{ kind.id }}" class="btn btn-sm btn-light" title="Profil">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card text-center py-5">
+        <div class="mx-auto mb-3" style="width:48px;height:48px;border-radius:14px;background:var(--sage-light);display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-people" style="color:var(--sage);font-size:1.3rem;"></i>
+        </div>
+        <p class="text-muted mb-0">Keine Kinder in dieser Kategorie.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

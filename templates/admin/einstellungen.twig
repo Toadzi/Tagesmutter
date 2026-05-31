@@ -1,0 +1,151 @@
+{% extends "layout.twig" %}
+{% set active_page = 'admin' %}
+{% set admin_tab = 'einstellungen' %}
+
+{% block title %}Einstellungen{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 900px;">
+    <div class="mb-4">
+        <h1 class="h3 fw-bold mb-1">Einstellungen</h1>
+        <p class="text-muted mb-0">Grundlegende App-Konfiguration</p>
+    </div>
+
+    {% include 'admin/_subnav.twig' %}
+
+    {% if flash_success %}
+    <div class="alert alert-success alert-dismissible fade show py-2 mb-4">
+        <i class="bi bi-check-circle me-1"></i>{{ flash_success }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{{ base_path }}/admin/einstellungen">
+        <div class="row g-4">
+
+            <!-- Allgemein -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-app-indicator text-muted"></i>
+                        <h6 class="fw-semibold mb-0">Allgemein</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="form-label fw-medium">App-Name
+                                    <span class="text-muted fw-normal small">(Sidebar & Browsertitel)</span>
+                                </label>
+                                <input type="text" name="settings[app_name]" class="form-control"
+                                       value="{{ settings.app_name.wert ?? 'Tagesmutter' }}"
+                                       placeholder="Tagesmutter">
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-medium">Untertitel</label>
+                                <input type="text" name="settings[app_subtitle]" class="form-control"
+                                       value="{{ settings.app_subtitle.wert ?? 'Verwaltung' }}"
+                                       placeholder="Verwaltung">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Entwicklungsberichte -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-file-earmark-text text-muted"></i>
+                        <h6 class="fw-semibold mb-0">Entwicklungsberichte</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-sm-4">
+                                <label class="form-label fw-medium">Standard-Zeitraum
+                                    <span class="text-muted fw-normal small">(Monate)</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" name="settings[bericht_zeitraum_monate]" class="form-control"
+                                           value="{{ settings.bericht_zeitraum_monate.wert ?? '6' }}"
+                                           min="1" max="24">
+                                    <span class="input-group-text text-muted">Monate</span>
+                                </div>
+                                <small class="text-muted">Vorausgefüllter Zeitraum beim Erstellen eines neuen Berichts</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-grid-1x2 text-muted"></i>
+                        <h6 class="fw-semibold mb-0">Dashboard</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-sm-4">
+                                <label class="form-label fw-medium">Geburtstags-Erinnerung
+                                    <span class="text-muted fw-normal small">(Tage im Voraus)</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" name="settings[geburtstag_erinnerung_tage]" class="form-control"
+                                           value="{{ settings.geburtstag_erinnerung_tage.wert ?? '14' }}"
+                                           min="1" max="60">
+                                    <span class="input-group-text text-muted">Tage</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <i class="bi bi-database text-muted"></i>
+                        <h6 class="fw-semibold mb-0">Datenbank-Backup</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-sm-4">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" name="settings[backup_aktiv]" value="1"
+                                           class="form-check-input" id="backupAktiv"
+                                           {{ (settings.backup_aktiv.wert ?? '1') == '1' ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-medium" for="backupAktiv">Automatisches Backup aktiv</label>
+                                </div>
+                                <small class="text-muted">Tägliche SQLite-Sicherung beim Serverstart</small>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label fw-medium">Aufbewahrungsdauer</label>
+                                <div class="input-group">
+                                    <input type="number" name="settings[backup_tage_aufbewahren]" class="form-control"
+                                           value="{{ settings.backup_tage_aufbewahren.wert ?? '14' }}"
+                                           min="1" max="365">
+                                    <span class="input-group-text text-muted">Tage</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                {% set backup_dir = 'data/backups' %}
+                                <label class="form-label fw-medium">Backup-Verzeichnis</label>
+                                <input type="text" class="form-control" value="{{ backup_dir }}" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-sage">
+                <i class="bi bi-check-lg me-1"></i> Einstellungen speichern
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,633 @@
+{% extends "layout.twig" %}
+{% set active_page = 'kinder' %}
+
+{% block title %}{{ kind.vorname }} {{ kind.nachname }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1200px;">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-sm-row align-items-start gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-grow-1">
+            {% if kind.foto_pfad %}
+            <img src="{{ base_path }}/uploads/{{ kind.foto_pfad }}" alt="{{ kind.vorname }}" class="avatar avatar-lg">
+            {% else %}
+            <div class="avatar-placeholder avatar-lg">
+                {{ kind.vorname|first }}{{ kind.nachname|first }}
+            </div>
+            {% endif %}
+            <div>
+                <h1 class="h3 fw-bold mb-0">{{ kind.vorname }} {{ kind.nachname }}</h1>
+                <p class="text-muted mb-0">geb. {{ kind.geburtsdatum|date("d.m.Y") }}{% if kind.betreuung_start %} · seit {{ kind.betreuung_start|date("d.m.Y") }}{% endif %}</p>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/foto" enctype="multipart/form-data" id="fotoForm">
+                <input type="file" name="foto" accept="image/*" class="d-none" id="fotoInput" onchange="document.getElementById('fotoForm').submit()">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('fotoInput').click()">
+                    <i class="bi bi-camera me-1"></i> Foto
+                </button>
+            </form>
+            <a href="{{ base_path }}/kinder/{{ kind.id }}/bearbeiten" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-pencil me-1"></i> Bearbeiten
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        {% set tabs = {
+            stammdaten: {icon: 'bi-person', label: 'Stammdaten'},
+            kontakte: {icon: 'bi-telephone', label: 'Kontakte'},
+            tagebuch: {icon: 'bi-journal-text', label: 'Tagebuch'},
+            meilensteine: {icon: 'bi-trophy', label: 'Meilensteine'},
+            portfolio: {icon: 'bi-images', label: 'Portfolio'},
+            anwesenheit: {icon: 'bi-calendar-check', label: 'Anwesenheit'},
+            berichte: {icon: 'bi-file-earmark-text', label: 'Berichte'},
+            unfaelle: {icon: 'bi-exclamation-triangle', label: 'Unfallbuch'}
+        } %}
+        {% for key, t in tabs %}
+        <li class="nav-item">
+            {% if key == 'unfaelle' %}
+            <a class="nav-link {{ tab == key ? 'active' : '' }}" href="{{ base_path }}/kinder/{{ kind.id }}/unfaelle">
+            {% else %}
+            <a class="nav-link {{ tab == key ? 'active' : '' }}" href="{{ base_path }}/kinder/{{ kind.id }}?tab={{ key }}">
+            {% endif %}
+                <i class="{{ t.icon }} d-sm-none"></i>
+                <span class="d-none d-sm-inline"><i class="{{ t.icon }} me-1"></i>{{ t.label }}</span>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- === STAMMDATEN === -->
+    {% if tab == 'stammdaten' %}
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header py-3"><h6 class="fw-semibold mb-0">Persönliche Daten</h6></div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm mb-0">
+                        <tr><td class="text-muted" style="width:40%">Geburtsdatum</td><td>{{ kind.geburtsdatum|date("d.m.Y") }}</td></tr>
+                        <tr><td class="text-muted">Geschlecht</td><td>{{ kind.geschlecht == 'm' ? 'männlich' : (kind.geschlecht == 'w' ? 'weiblich' : (kind.geschlecht == 'd' ? 'divers' : '—')) }}</td></tr>
+                        <tr><td class="text-muted">Muttersprache</td><td>{{ kind.muttersprache ?: '—' }}</td></tr>
+                        <tr><td class="text-muted">Adresse</td><td>{{ kind.adresse ?: '—' }}{% if kind.plz or kind.ort %}<br>{{ kind.plz }} {{ kind.ort }}{% endif %}</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header py-3"><h6 class="fw-semibold mb-0">Betreuung</h6></div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm mb-0">
+                        <tr><td class="text-muted" style="width:40%">Beginn</td><td>{{ kind.betreuung_start ? kind.betreuung_start|date("d.m.Y") : '—' }}</td></tr>
+                        <tr><td class="text-muted">Ende</td><td>{{ kind.betreuung_ende ? kind.betreuung_ende|date("d.m.Y") : '—' }}</td></tr>
+                        <tr><td class="text-muted">Zeiten</td><td>{{ kind.betreuungszeiten ?: '—' }}</td></tr>
+                        <tr><td class="text-muted">Fotofreigabe</td><td>
+                            {% if kind.foto_freigabe %}
+                            <span class="badge bg-success-subtle text-success">Ja</span>
+                            {% else %}
+                            <span class="badge bg-danger-subtle text-danger">Nein</span>
+                            {% endif %}
+                        </td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header py-3"><h6 class="fw-semibold mb-0">Gesundheit</h6></div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm mb-0">
+                        <tr><td class="text-muted" style="width:40%">Allergien</td><td>{{ kind.allergien ?: '—' }}</td></tr>
+                        <tr><td class="text-muted">Medikamente</td><td>{{ kind.medikamente ?: '—' }}</td></tr>
+                        <tr><td class="text-muted">Besonderheiten</td><td>{{ kind.besonderheiten ?: '—' }}</td></tr>
+                        <tr><td class="text-muted">Kinderarzt</td><td>{{ kind.arzt_name ?: '—' }}{% if kind.arzt_telefon %}<br><small>{{ kind.arzt_telefon }}</small>{% endif %}</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dokumente -->
+    <div class="card mt-4" id="dokumente">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="fw-semibold mb-0"><i class="bi bi-paperclip me-1"></i> Dokumente</h6>
+            <button class="btn btn-sage btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#uploadDokument">
+                <i class="bi bi-plus-lg me-1"></i> Hochladen
+            </button>
+        </div>
+        <div class="collapse" id="uploadDokument">
+            <div class="card-body border-bottom bg-light">
+                <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/dokumente/upload" enctype="multipart/form-data">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label small">Datei(en) auswählen</label>
+                            <input type="file" name="dokumente[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.odt,.ods,.txt,.jpg,.jpeg,.png,.gif,.webp" class="form-control form-control-sm">
+                            <small class="text-muted">PDF, Word, Excel, Bilder — max. 20 MB je Datei</small>
+                        </div>
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label small">Beschreibung (optional)</label>
+                            <input type="text" name="beschreibung" class="form-control form-control-sm" placeholder="z.B. Betreuungsvertrag">
+                        </div>
+                        <div class="col-12 col-sm-2">
+                            <button type="submit" class="btn btn-sage btn-sm w-100">Speichern</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% if dokumente|length > 0 %}
+        <div class="list-group list-group-flush">
+            {% for dok in dokumente %}
+            {% set icon = 'bi-file-earmark' %}
+            {% if 'pdf' in dok.typ %} {% set icon = 'bi-file-earmark-pdf text-danger' %}
+            {% elseif 'word' in dok.typ or 'document' in dok.typ %} {% set icon = 'bi-file-earmark-word text-primary' %}
+            {% elseif 'excel' in dok.typ or 'sheet' in dok.typ %} {% set icon = 'bi-file-earmark-excel text-success' %}
+            {% elseif 'image' in dok.typ %} {% set icon = 'bi-file-earmark-image text-info' %}
+            {% elseif 'text' in dok.typ %} {% set icon = 'bi-file-earmark-text text-secondary' %}
+            {% endif %}
+            <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <i class="bi {{ icon }} fs-4 flex-shrink-0"></i>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fw-medium text-truncate">{{ dok.originalname }}</div>
+                    <small class="text-muted">
+                        {% if dok.beschreibung %}{{ dok.beschreibung }} · {% endif %}
+                        {{ (dok.groesse / 1024)|round(1) }} KB · {{ dok.hochgeladen_am|date("d.m.Y") }}
+                    </small>
+                </div>
+                <div class="d-flex gap-1 flex-shrink-0">
+                    <a href="{{ base_path }}/kinder/{{ kind.id }}/dokumente/{{ dok.id }}/download" class="btn btn-sm btn-light" title="Herunterladen">
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/dokumente/{{ dok.id }}/loeschen" onsubmit="return confirm('Dokument löschen?')">
+                        <button class="btn btn-sm btn-light text-danger" title="Löschen">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card-body text-center text-muted py-4">
+            <i class="bi bi-paperclip fs-2 d-block mb-2 opacity-25"></i>
+            Noch keine Dokumente hochgeladen.
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card border-danger-subtle mt-4">
+        <div class="card-body">
+            <h6 class="text-danger fw-semibold mb-2">Gefahrenzone</h6>
+            <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/loeschen" onsubmit="return confirm('{{ kind.vorname }} wirklich UNWIDERRUFLICH löschen?')">
+                <button type="submit" class="btn btn-outline-danger btn-sm">Kind endgültig löschen</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- === KONTAKTE === -->
+    {% elseif tab == 'kontakte' %}
+    <div class="mb-3">
+        <button class="btn btn-sage btn-sm" data-bs-toggle="collapse" data-bs-target="#addKontakt">
+            <i class="bi bi-plus-lg me-1"></i> Kontakt hinzufügen
+        </button>
+    </div>
+
+    <div class="collapse mb-3" id="addKontakt">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/kontakte/neu">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label">Rolle</label>
+                            <select name="rolle" class="form-select">
+                                <option value="mutter">Mutter</option>
+                                <option value="vater">Vater</option>
+                                <option value="oma">Oma</option>
+                                <option value="opa">Opa</option>
+                                <option value="abholberechtigt">Abholberechtigt</option>
+                                <option value="sonstige">Sonstige</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Name *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label">Telefon</label>
+                            <input type="tel" name="telefon" class="form-control">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label">Mobil</label>
+                            <input type="tel" name="mobil" class="form-control">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label">E-Mail</label>
+                            <input type="email" name="email" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" name="notfall" value="1" class="form-check-input" id="newNotfall">
+                                <label class="form-check-label" for="newNotfall">Notfallkontakt</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input type="checkbox" name="abholberechtigt" value="1" class="form-check-input" id="newAbhol">
+                                <label class="form-check-label" for="newAbhol">Abholberechtigt</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-sage btn-sm">Speichern</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% for kontakt in kontakte %}
+    <div class="card mb-2">
+        <!-- Kompaktansicht -->
+        <div class="card-body d-flex align-items-center gap-3 py-3" id="view-{{ kontakt.id }}">
+            <div class="avatar-placeholder" style="width:40px;height:40px;font-size:0.8rem;border-radius:10px;">
+                {{ kontakt.rolle|first|upper }}
+            </div>
+            <div class="flex-grow-1 min-w-0">
+                <div class="fw-semibold">{{ kontakt.name }}</div>
+                <small class="text-muted">
+                    {{ kontakt.rolle|capitalize }}
+                    {% if kontakt.telefon %} · <i class="bi bi-telephone"></i> {{ kontakt.telefon }}{% endif %}
+                    {% if kontakt.mobil %} · <i class="bi bi-phone"></i> {{ kontakt.mobil }}{% endif %}
+                    {% if kontakt.email %} · <i class="bi bi-envelope"></i> {{ kontakt.email }}{% endif %}
+                </small>
+            </div>
+            <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                {% if kontakt.notfall %}<span class="badge bg-danger-subtle text-danger">Notfall</span>{% endif %}
+                {% if kontakt.abholberechtigt %}<span class="badge bg-primary-subtle text-primary">Abhol.</span>{% endif %}
+                <button class="btn btn-sm btn-light" title="Bearbeiten"
+                        onclick="toggleEdit({{ kontakt.id }})">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/kontakte/{{ kontakt.id }}/loeschen"
+                      onsubmit="return confirm('Kontakt löschen?')">
+                    <button class="btn btn-sm btn-light text-danger" title="Löschen">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <!-- Inline-Bearbeitungsformular -->
+        <div id="edit-{{ kontakt.id }}" class="d-none border-top">
+            <div class="card-body">
+                <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/kontakte/{{ kontakt.id }}/bearbeiten">
+                    <div class="row g-2">
+                        <div class="col-sm-4">
+                            <label class="form-label small">Rolle</label>
+                            <select name="rolle" class="form-select form-select-sm">
+                                {% for r in ['mutter','vater','oma','opa','abholberechtigt','sonstige'] %}
+                                <option value="{{ r }}" {{ kontakt.rolle == r ? 'selected' : '' }}>{{ r|capitalize }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-8">
+                            <label class="form-label small">Name *</label>
+                            <input type="text" name="name" class="form-control form-control-sm"
+                                   value="{{ kontakt.name }}" required>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label small">Telefon</label>
+                            <input type="tel" name="telefon" class="form-control form-control-sm"
+                                   value="{{ kontakt.telefon }}">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label small">Mobil</label>
+                            <input type="tel" name="mobil" class="form-control form-control-sm"
+                                   value="{{ kontakt.mobil }}">
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="form-label small">E-Mail</label>
+                            <input type="email" name="email" class="form-control form-control-sm"
+                                   value="{{ kontakt.email }}">
+                        </div>
+                        <div class="col-12 d-flex align-items-center gap-3 flex-wrap">
+                            <div class="form-check form-check-inline mb-0">
+                                <input type="checkbox" name="notfall" value="1" class="form-check-input"
+                                       id="notfall-{{ kontakt.id }}" {{ kontakt.notfall ? 'checked' : '' }}>
+                                <label class="form-check-label small" for="notfall-{{ kontakt.id }}">Notfallkontakt</label>
+                            </div>
+                            <div class="form-check form-check-inline mb-0">
+                                <input type="checkbox" name="abholberechtigt" value="1" class="form-check-input"
+                                       id="abhol-{{ kontakt.id }}" {{ kontakt.abholberechtigt ? 'checked' : '' }}>
+                                <label class="form-check-label small" for="abhol-{{ kontakt.id }}">Abholberechtigt</label>
+                            </div>
+                            <div class="ms-auto d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        onclick="toggleEdit({{ kontakt.id }})">Abbrechen</button>
+                                <button type="submit" class="btn btn-sm btn-sage">Speichern</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card text-center py-4"><p class="text-muted mb-0">Noch keine Kontakte angelegt.</p></div>
+    {% endfor %}
+
+
+    <!-- === TAGEBUCH === -->
+    {% elseif tab == 'tagebuch' %}
+    <div class="card mb-4">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0">Neuer Eintrag</h6></div>
+        <div class="card-body">
+            <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/tagebuch/neu" enctype="multipart/form-data">
+                <input type="hidden" name="datum" value="{{ current_date }}">
+                <div class="mb-3">
+                    <input type="text" name="titel" class="form-control" placeholder="Titel (optional)">
+                </div>
+                <div class="mb-3">
+                    <textarea name="text" rows="3" class="form-control" placeholder="Was ist heute passiert?" required></textarea>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                    <div class="stimmung-select d-flex gap-1">
+                        {% for i in 1..5 %}
+                        <label>
+                            <input type="radio" name="stimmung" value="{{ i }}" class="d-none">
+                            <span class="fs-4" style="opacity:0.35">{{ ['','😢','😕','😐','😊','😄'][i] }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div class="kategorie-check d-flex flex-wrap gap-1">
+                        {% for kat in bereich_keys %}
+                        <label>
+                            <input type="checkbox" name="kategorien[]" value="{{ kat }}" class="d-none">
+                            <span class="badge bg-light text-dark" style="cursor:pointer">{{ kat|capitalize }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Fotos hinzufügen (optional)</label>
+                    <input type="file" name="tagebuch_fotos[]" accept="image/*" multiple class="form-control form-control-sm">
+                </div>
+                <div class="d-flex align-items-center justify-content-between gap-3">
+                    <div class="form-check mb-0">
+                        <input type="checkbox" name="als_meilenstein" value="1" class="form-check-input" id="meilensteinCheck">
+                        <label class="form-check-label small" for="meilensteinCheck">
+                            🏅 Als Meilenstein festhalten
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-sage btn-sm">Eintrag speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% for eintrag in tagebuch %}
+    {% set eintrag_fotos = fotos_by_tagebuch[eintrag.id] ?? [] %}
+    <div class="card mb-2">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <small class="text-muted">{{ eintrag.datum|date("d.m.Y") }}</small>
+                        {% if eintrag.stimmung %}
+                        <span>{{ ['','😢','😕','😐','😊','😄'][eintrag.stimmung] }}</span>
+                        {% endif %}
+                        {% if eintrag_fotos|length > 0 %}
+                        <small class="text-muted"><i class="bi bi-image"></i> {{ eintrag_fotos|length }}</small>
+                        {% endif %}
+                    </div>
+                    {% if eintrag.titel %}
+                    <h6 class="fw-semibold mb-1">{{ eintrag.titel }}</h6>
+                    {% endif %}
+                    <p class="mb-1 small" style="white-space: pre-line;">{{ eintrag.text }}</p>
+                    {% set kats = eintrag.kategorien ? eintrag.kategorien|replace({"[":"","]":"","\"":""})|split(',') : [] %}
+                    {% if kats|length > 0 and kats[0] != '' %}
+                    <div class="d-flex gap-1 mt-1">
+                        {% for kat in kats %}
+                        <span class="badge badge-sage">{{ kat|trim }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-1 ms-2">
+                    <a href="{{ base_path }}/kinder/{{ kind.id }}/tagebuch/{{ eintrag.id }}/bearbeiten" class="btn btn-sm btn-light"><i class="bi bi-pencil"></i></a>
+                    <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/tagebuch/{{ eintrag.id }}/loeschen" onsubmit="return confirm('Löschen?')">
+                        <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% if eintrag_fotos|length > 0 %}
+            <div class="row g-2 mt-1">
+                {% for foto in eintrag_fotos %}
+                <div class="col-4 col-sm-3 col-md-2">
+                    <a href="{{ base_path }}/uploads/{{ foto.dateiname }}" target="_blank">
+                        <img src="{{ base_path }}/uploads/{{ foto.thumbnail ?: foto.dateiname }}"
+                             alt="{{ foto.beschreibung }}"
+                             class="img-fluid rounded"
+                             style="aspect-ratio:1;object-fit:cover;width:100%;">
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card text-center py-4"><p class="text-muted mb-0">Noch keine Tagebucheinträge.</p></div>
+    {% endfor %}
+
+    <!-- === MEILENSTEINE === -->
+    {% elseif tab == 'meilensteine' %}
+    {% set bereich_farben = {
+        sprache: 'bg-primary-subtle text-primary',
+        motorik: 'bg-success-subtle text-success',
+        sozial: 'bg-warning-subtle text-warning',
+        kognitiv: 'bg-info-subtle text-info',
+        kreativ: 'bg-danger-subtle text-danger',
+        musik: 'bg-purple-subtle text-purple',
+        natur: 'bg-success-subtle text-success',
+        alltag: 'bg-secondary-subtle text-secondary'
+    } %}
+
+    <!-- Neuen Meilenstein erfassen -->
+    <div class="card mb-4">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0"><i class="bi bi-plus-circle me-1"></i>Neuer Meilenstein</h6></div>
+        <div class="card-body">
+            <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/meilensteine/neu">
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                        <label class="form-label">Datum</label>
+                        <input type="date" name="datum" class="form-control" value="{{ current_date }}">
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label">Bildungsbereich</label>
+                        <select name="bildungsbereich" class="form-select">
+                            <option value="">— kein Bereich —</option>
+                            {% for b in bereich_keys %}
+                            <option value="{{ b }}">{{ b|capitalize }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-sm-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-sage w-100">Speichern</button>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Beschreibung *</label>
+                        <textarea name="beschreibung" rows="2" class="form-control" placeholder="z.B. Erste Schritte gemacht 🎉" required></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Meilenstein-Zeitstrahl -->
+    {% if meilensteine|length > 0 %}
+    {% set aktuelles_jahr = '' %}
+    {% for ms in meilensteine %}
+        {% set ms_jahr = ms.datum|date('Y') %}
+        {% if ms_jahr != aktuelles_jahr %}
+            {% if not loop.first %}</ul></div>{% endif %}
+            {% set aktuelles_jahr = ms_jahr %}
+            <h6 class="text-muted fw-semibold mb-2 mt-3">{{ ms_jahr }}</h6>
+            <div class="timeline"><ul class="list-unstyled ps-0">
+        {% endif %}
+        <li class="d-flex gap-3 mb-3">
+            <div class="d-flex flex-column align-items-center" style="width:32px;flex-shrink:0;">
+                <div style="width:32px;height:32px;border-radius:50%;background:var(--sage-light);display:flex;align-items:center;justify-content:center;color:var(--sage-dark);font-size:1rem;">
+                    {{ bereich_icons[ms.bildungsbereich] ?? '🏅' }}
+                </div>
+                {% if not loop.last %}<div style="width:2px;flex:1;background:#e9ecef;margin:4px 0;"></div>{% endif %}
+            </div>
+            <div class="flex-grow-1 pb-1">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <small class="text-muted">{{ ms.datum|date('d.m.Y') }}</small>
+                    {% if ms.bildungsbereich %}
+                    <span class="badge {{ bereich_farben[ms.bildungsbereich] ?? 'bg-light text-dark' }}">{{ ms.bildungsbereich|capitalize }}</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <p class="mb-0">{{ ms.beschreibung }}</p>
+                    <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/meilensteine/{{ ms.id }}/loeschen" onsubmit="return confirm('Meilenstein löschen?')" class="flex-shrink-0">
+                        <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+        </li>
+    {% endfor %}
+    </ul></div>
+    {% else %}
+    <div class="card text-center py-5">
+        <div class="mx-auto mb-3" style="width:56px;height:56px;border-radius:16px;background:var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🏅</div>
+        <h6 class="fw-semibold">Noch keine Meilensteine</h6>
+        <p class="text-muted mb-0 small">Halte besondere Entwicklungsschritte fest.</p>
+    </div>
+    {% endif %}
+
+    <!-- === PORTFOLIO === -->
+    {% elseif tab == 'portfolio' %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ base_path }}/kinder/{{ kind.id }}/portfolio" class="btn btn-outline-secondary btn-sm">Alle Fotos</a>
+        <a href="{{ base_path }}/kinder/{{ kind.id }}/portfolio/pdf" class="btn btn-warm btn-sm">
+            <i class="bi bi-file-pdf me-1"></i> PDF Export
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/portfolio/upload" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Fotos hochladen</label>
+                        <input type="file" name="fotos[]" accept="image/*" multiple class="form-control">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Beschreibung</label>
+                        <input type="text" name="beschreibung" class="form-control">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Aufnahmedatum</label>
+                        <input type="date" name="aufnahme_datum" class="form-control" value="{{ current_date }}">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-sage btn-sm">Hochladen</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {% for foto in fotos %}
+        <div class="col-6 col-sm-4 col-lg-3">
+            <div class="card h-100 position-relative foto-card">
+                <img src="{{ base_path }}/uploads/{{ foto.thumbnail ?: foto.dateiname }}" alt="{{ foto.beschreibung }}" class="card-img-top" style="aspect-ratio:1;object-fit:cover;">
+                <div class="card-body p-2">
+                    <small class="text-muted">{{ foto.aufnahme_datum ? foto.aufnahme_datum|date("d.m.Y") : '' }}</small>
+                    {% if foto.beschreibung %}
+                    <p class="small mb-0 text-truncate">{{ foto.beschreibung }}</p>
+                    {% endif %}
+                </div>
+                <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/portfolio/{{ foto.id }}/loeschen" class="position-absolute top-0 end-0 m-1" onsubmit="return confirm('Foto löschen?')">
+                    <button class="btn btn-sm btn-dark rounded-circle" style="width:28px;height:28px;padding:0;opacity:0.7;">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="card text-center py-4"><p class="text-muted mb-0">Noch keine Fotos.</p></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- === ANWESENHEIT === -->
+    {% elseif tab == 'anwesenheit' %}
+    <div class="card text-center py-4">
+        <p class="text-muted mb-3">Zur Monatsansicht für detaillierte Anwesenheitserfassung:</p>
+        <div><a href="{{ base_path }}/kinder/{{ kind.id }}/anwesenheit" class="btn btn-sage">Anwesenheit verwalten</a></div>
+    </div>
+
+    <!-- === BERICHTE === -->
+    {% elseif tab == 'berichte' %}
+    <div class="mb-3">
+        <a href="{{ base_path }}/kinder/{{ kind.id }}/berichte/neu" class="btn btn-sage btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Neuer Bericht
+        </a>
+    </div>
+
+    {% for bericht in berichte %}
+    <a href="{{ base_path }}/kinder/{{ kind.id }}/berichte/{{ bericht.id }}" class="card mb-2 text-decoration-none d-block">
+        <div class="card-body d-flex align-items-center gap-3 py-3">
+            <div class="stat-icon {{ bericht.status == 'final' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }}">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-semibold text-dark">{{ bericht.titel ?: 'Entwicklungsbericht' }}</div>
+                <small class="text-muted">{{ bericht.zeitraum_von|date("d.m.Y") }} – {{ bericht.zeitraum_bis|date("d.m.Y") }}</small>
+            </div>
+            <span class="badge {{ bericht.status == 'final' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }}">{{ bericht.status|capitalize }}</span>
+        </div>
+    </a>
+    {% else %}
+    <div class="card text-center py-4"><p class="text-muted mb-0">Noch keine Berichte erstellt.</p></div>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleEdit(id) {
+    const view = document.getElementById('view-' + id);
+    const edit = document.getElementById('edit-' + id);
+    if (!view || !edit) return;
+    const isOpen = !edit.classList.contains('d-none');
+    edit.classList.toggle('d-none', isOpen);
+    view.classList.toggle('bg-light', !isOpen);
+}
+</script>
+{% endblock %}

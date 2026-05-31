@@ -1,0 +1,183 @@
+{% extends "layout.twig" %}
+{% set active_page = 'unfaelle' %}
+{% block title %}{{ is_new ? 'Unfall erfassen' : 'Unfall bearbeiten' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width:800px;">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}" class="text-decoration-none">{{ kind.vorname }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}/unfaelle" class="text-decoration-none">Unfallbuch</a></li>
+            <li class="breadcrumb-item active">{{ is_new ? 'Neu' : 'Bearbeiten' }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div style="width:44px;height:44px;border-radius:12px;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-exclamation-triangle-fill" style="color:#d97706;font-size:1.1rem;"></i>
+        </div>
+        <div>
+            <h1 class="h4 fw-bold mb-0">{{ is_new ? 'Unfall erfassen' : 'Unfall bearbeiten' }}</h1>
+            <small class="text-muted">{{ kind.vorname }} {{ kind.nachname }}</small>
+        </div>
+    </div>
+
+    <form method="post" action="{{ base_path ~ (is_new ? '/kinder/' ~ kind.id ~ '/unfaelle/neu' : '/kinder/' ~ kind.id ~ '/unfaelle/' ~ unfall.id ~ '/bearbeiten') }}">
+
+        {# 1. Grunddaten #}
+        <div class="card mb-3">
+            <div class="card-header py-3"><h6 class="fw-semibold mb-0"><i class="bi bi-info-circle me-2"></i>Grunddaten</h6></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-semibold">Datum *</label>
+                        <input type="date" name="datum" value="{{ unfall.datum ?? ''|date('Y-m-d') }}" class="form-control" required>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-semibold">Uhrzeit</label>
+                        <input type="time" name="uhrzeit" value="{{ unfall.uhrzeit ?? '' }}" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold">Ort des Unfalls</label>
+                        <input type="text" name="ort" value="{{ unfall.ort ?? '' }}" class="form-control" placeholder="z.B. Garten, Spielzimmer …">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold">Datum/Uhrzeit gemeldet</label>
+                        <input type="text" name="gemeldet_am" value="{{ unfall.gemeldet_am ?? '' }}" class="form-control" placeholder="z.B. 15.04.2026, 14:30 Uhr">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="entwurf"       {{ (unfall.status ?? 'entwurf') == 'entwurf'       ? 'selected' : '' }}>Entwurf</option>
+                            <option value="abgeschlossen" {{ (unfall.status ?? '') == 'abgeschlossen' ? 'selected' : '' }}>Abgeschlossen</option>
+                            <option value="gemeldet"      {{ (unfall.status ?? '') == 'gemeldet'      ? 'selected' : '' }}>Gemeldet</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# 2. Einzelheiten #}
+        <div class="card mb-3">
+            <div class="card-header py-3"><h6 class="fw-semibold mb-0"><i class="bi bi-card-text me-2"></i>Einzelheiten des Vorfalls / Unfalls</h6></div>
+            <div class="card-body">
+                <textarea name="einzelheiten" rows="4" class="form-control" placeholder="Was ist passiert? Wie kam es zum Unfall?">{{ unfall.einzelheiten ?? '' }}</textarea>
+            </div>
+        </div>
+
+        {# 3. Zeugen #}
+        <div class="card mb-3">
+            <div class="card-header py-3"><h6 class="fw-semibold mb-0"><i class="bi bi-people me-2"></i>Zeugen</h6></div>
+            <div class="card-body">
+                <div class="row g-2">
+                    {% for i in 1..3 %}
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small text-muted">Name</label>
+                        <input type="text" name="zeuge{{ i }}_name" value="{{ attribute(unfall, 'zeuge' ~ i ~ '_name') ?? '' }}" class="form-control" placeholder="Zeuge {{ i }}">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small text-muted">Kontakt</label>
+                        <input type="text" name="zeuge{{ i }}_kontakt" value="{{ attribute(unfall, 'zeuge' ~ i ~ '_kontakt') ?? '' }}" class="form-control" placeholder="Telefon / E-Mail">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {# 4. Verletzungen #}
+        <div class="card mb-3">
+            <div class="card-header py-3"><h6 class="fw-semibold mb-0"><i class="bi bi-bandaid me-2"></i>Art und Ausmaß der Verletzungen</h6></div>
+            <div class="card-body">
+                <textarea name="verletzungen" rows="3" class="form-control" placeholder="Beschreibe Art und Ausmaß der Verletzungen …">{{ unfall.verletzungen ?? '' }}</textarea>
+            </div>
+        </div>
+
+        {# 5. Maßnahmen #}
+        <div class="card mb-3">
+            <div class="card-header py-3"><h6 class="fw-semibold mb-0"><i class="bi bi-heart-pulse me-2"></i>Welche Maßnahmen wurden ergriffen?</h6></div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-3 mb-3">
+                    {% for m in ['krankenwagen', 'erste_hilfe', 'krankenhaus', 'polizei'] %}
+                    {% set labels = {krankenwagen: 'Krankenwagen gerufen', erste_hilfe: 'Erste Hilfe', krankenhaus: 'Krankenhaus', polizei: 'Polizei'} %}
+                    {% set icons  = {krankenwagen: 'bi-truck', erste_hilfe: 'bi-bandaid', krankenhaus: 'bi-hospital', polizei: 'bi-shield'} %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="massnahmen[]" value="{{ m }}" id="ma_{{ m }}"
+                            {{ m in massnahmen ? 'checked' : '' }}>
+                        <label class="form-check-label" for="ma_{{ m }}">
+                            <i class="bi {{ icons[m] }} me-1"></i>{{ labels[m] }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div>
+                    <label class="form-label small text-muted">Sonstige Maßnahmen</label>
+                    <input type="text" name="massnahmen_sonstige" value="{{ unfall.massnahmen_sonstige ?? '' }}" class="form-control" placeholder="Bitte angeben …">
+                </div>
+            </div>
+        </div>
+
+        {# 6. Prävention #}
+        <div class="card mb-3">
+            <div class="card-header py-3"><h6 class="fw-semibold mb-0"><i class="bi bi-shield-check me-2"></i>Maßnahmen die den Unfall hätten verhindern können</h6></div>
+            <div class="card-body">
+                <textarea name="praevention" rows="3" class="form-control" placeholder="Welche Vorkehrungen hätten den Unfall verhindern können?">{{ unfall.praevention ?? '' }}</textarea>
+            </div>
+        </div>
+
+        {# 7. Unfallkasse #}
+        <div class="card mb-3" style="border-color:#bfdbfe;background:#eff6ff;">
+            <div class="card-body">
+                <div class="d-flex align-items-start gap-3">
+                    <i class="bi bi-info-circle-fill mt-1" style="color:#3b82f6;font-size:1.1rem;flex-shrink:0;"></i>
+                    <div>
+                        <div class="fw-semibold mb-1" style="color:#1d4ed8;">Meldepflicht Unfallkasse</div>
+                        <p class="text-muted mb-2" style="font-size:0.875rem;">Unfälle, die zu einer Behandlung durch einen Arzt oder Zahnarzt führen oder bei denen das Kind länger als drei Tage betreuungsunfähig ist, müssen der zuständigen Unfallkasse gemeldet werden.</p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="unfallkasse_gemeldet" id="unfallkasse_gemeldet" value="1" {{ (unfall.unfallkasse_gemeldet ?? 0) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-semibold" for="unfallkasse_gemeldet">Der Unfall wurde der Unfallkasse gemeldet</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# 8. Abschluss #}
+        <div class="card mb-4">
+            <div class="card-header py-3"><h6 class="fw-semibold mb-0"><i class="bi bi-pen me-2"></i>Abschluss</h6></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold">Formular ausgefüllt von</label>
+                        <input type="text" name="ausgefuellt_von" value="{{ unfall.ausgefuellt_von ?? '' }}" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold">Datum</label>
+                        <input type="date" name="ausgefuellt_datum" value="{{ unfall.ausgefuellt_datum ?? '' }}" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold">Genehmigt durch</label>
+                        <input type="text" name="genehmigt_von" value="{{ unfall.genehmigt_von ?? '' }}" class="form-control">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold">Datum</label>
+                        <input type="date" name="genehmigt_datum" value="{{ unfall.genehmigt_datum ?? '' }}" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Unterschrift (Textstempel)</label>
+                        <input type="text" name="unterschrift_stempel" value="{{ unfall.unterschrift_stempel ?? '' }}" class="form-control" placeholder="z.B. Maria Muster, 16.04.2026">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-sage px-4">
+                <i class="bi bi-check-lg me-1"></i>{{ is_new ? 'Speichern' : 'Aktualisieren' }}
+            </button>
+            <a href="{{ base_path }}/kinder/{{ kind.id }}/unfaelle{% if not is_new %}/{{ unfall.id }}{% endif %}" class="btn btn-outline-secondary">Abbrechen</a>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

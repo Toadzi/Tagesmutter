@@ -1,0 +1,186 @@
+{% extends "layout.twig" %}
+{% set active_page = 'unfaelle' %}
+{% block title %}Unfall {{ unfall.datum|date("d.m.Y") }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width:800px;">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}" class="text-decoration-none">{{ kind.vorname }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}/unfaelle" class="text-decoration-none">Unfallbuch</a></li>
+            <li class="breadcrumb-item active">{{ unfall.datum|date("d.m.Y") }}</li>
+        </ol>
+    </nav>
+
+    {# Header #}
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div style="width:44px;height:44px;border-radius:12px;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="bi bi-exclamation-triangle-fill" style="color:#d97706;font-size:1.1rem;"></i>
+            </div>
+            <div>
+                <h1 class="h4 fw-bold mb-0">Unfall {{ unfall.datum|date("d.m.Y") }}</h1>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                    <small class="text-muted">{{ kind.vorname }} {{ kind.nachname }}</small>
+                    {% set sc = unfall.status == 'abgeschlossen' ? 'success' : (unfall.status == 'gemeldet' ? 'primary' : 'warning') %}
+                    {% set sl = unfall.status == 'abgeschlossen' ? 'Abgeschlossen' : (unfall.status == 'gemeldet' ? 'Gemeldet' : 'Entwurf') %}
+                    <span class="badge bg-{{ sc }}-subtle text-{{ sc }}-emphasis border border-{{ sc }}-subtle">{{ sl }}</span>
+                    {% if unfall.unfallkasse_gemeldet %}
+                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle"><i class="bi bi-check2-circle me-1"></i>Unfallkasse gemeldet</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ base_path }}/kinder/{{ kind.id }}/unfaelle/{{ unfall.id }}/pdf" class="btn btn-warm btn-sm" target="_blank">
+                <i class="bi bi-file-pdf me-1"></i>PDF
+            </a>
+            <a href="{{ base_path }}/kinder/{{ kind.id }}/unfaelle/{{ unfall.id }}/bearbeiten" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-pencil me-1"></i>Bearbeiten
+            </a>
+        </div>
+    </div>
+
+    {# Grunddaten #}
+    <div class="card mb-3">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0">Grunddaten</h6></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <div class="text-muted small">Datum</div>
+                    <div class="fw-semibold">{{ unfall.datum|date("d.m.Y") }}</div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="text-muted small">Uhrzeit</div>
+                    <div class="fw-semibold">{{ unfall.uhrzeit ?: '–' }}</div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="text-muted small">Ort</div>
+                    <div class="fw-semibold">{{ unfall.ort ?: '–' }}</div>
+                </div>
+                <div class="col-12">
+                    <div class="text-muted small">Gemeldet am</div>
+                    <div class="fw-semibold">{{ unfall.gemeldet_am ?: '–' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Einzelheiten #}
+    {% if unfall.einzelheiten %}
+    <div class="card mb-3">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0">Einzelheiten des Vorfalls</h6></div>
+        <div class="card-body">
+            <p class="mb-0" style="white-space:pre-line;">{{ unfall.einzelheiten }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Zeugen #}
+    {% if unfall.zeuge1_name or unfall.zeuge2_name or unfall.zeuge3_name %}
+    <div class="card mb-3">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0">Zeugen</h6></div>
+        <div class="card-body">
+            <div class="row g-2">
+                {% for i in 1..3 %}
+                {% set zname = attribute(unfall, 'zeuge' ~ i ~ '_name') %}
+                {% if zname %}
+                <div class="col-12 col-md-6 d-flex align-items-center gap-2">
+                    <i class="bi bi-person text-muted"></i>
+                    <div>
+                        <div class="fw-semibold">{{ zname }}</div>
+                        <small class="text-muted">{{ attribute(unfall, 'zeuge' ~ i ~ '_kontakt') ?: '–' }}</small>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Verletzungen #}
+    {% if unfall.verletzungen %}
+    <div class="card mb-3">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0">Art und Ausmaß der Verletzungen</h6></div>
+        <div class="card-body">
+            <p class="mb-0" style="white-space:pre-line;">{{ unfall.verletzungen }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Maßnahmen #}
+    {% if massnahmen|length > 0 or unfall.massnahmen_sonstige %}
+    <div class="card mb-3">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0">Ergriffene Maßnahmen</h6></div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                {% set labels = {krankenwagen: 'Krankenwagen gerufen', erste_hilfe: 'Erste Hilfe', krankenhaus: 'Krankenhaus', polizei: 'Polizei'} %}
+                {% for m in massnahmen %}
+                <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle px-3 py-2">{{ labels[m] ?? m }}</span>
+                {% endfor %}
+            </div>
+            {% if unfall.massnahmen_sonstige %}
+            <p class="mb-0 text-muted">Sonstiges: {{ unfall.massnahmen_sonstige }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# Prävention #}
+    {% if unfall.praevention %}
+    <div class="card mb-3">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0">Präventivmaßnahmen</h6></div>
+        <div class="card-body">
+            <p class="mb-0" style="white-space:pre-line;">{{ unfall.praevention }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Unfallkasse Hinweis #}
+    {% if not unfall.unfallkasse_gemeldet %}
+    <div class="card mb-3" style="border-color:#bfdbfe;background:#eff6ff;">
+        <div class="card-body d-flex align-items-center gap-3">
+            <i class="bi bi-info-circle-fill" style="color:#3b82f6;font-size:1.1rem;flex-shrink:0;"></i>
+            <p class="mb-0 text-muted" style="font-size:0.875rem;">Prüfe ob dieser Unfall der <strong>Unfallkasse</strong> gemeldet werden muss (ärztliche Behandlung oder Betreuungsausfall &gt; 3 Tage).</p>
+            <a href="{{ base_path }}/kinder/{{ kind.id }}/unfaelle/{{ unfall.id }}/bearbeiten" class="btn btn-sm btn-outline-primary flex-shrink-0">Melden</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Abschluss #}
+    <div class="card mb-4">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0">Abschluss</h6></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <div class="text-muted small">Ausgefüllt von</div>
+                    <div class="fw-semibold">{{ unfall.ausgefuellt_von ?: '–' }}</div>
+                    {% if unfall.ausgefuellt_datum %}<small class="text-muted">{{ unfall.ausgefuellt_datum }}</small>{% endif %}
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="text-muted small">Genehmigt durch</div>
+                    <div class="fw-semibold">{{ unfall.genehmigt_von ?: '–' }}</div>
+                    {% if unfall.genehmigt_datum %}<small class="text-muted">{{ unfall.genehmigt_datum }}</small>{% endif %}
+                </div>
+                {% if unfall.unterschrift_stempel %}
+                <div class="col-12">
+                    <div class="text-muted small">Unterschrift</div>
+                    <div class="fw-semibold" style="font-style:italic;">{{ unfall.unterschrift_stempel }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Löschen #}
+    {% if session_rolle == 'admin' %}
+    <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/unfaelle/{{ unfall.id }}/loeschen"
+          onsubmit="return confirm('Diesen Unfalleintrag wirklich löschen?')">
+        <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Eintrag löschen</button>
+    </form>
+    {% endif %}
+
+</div>
+{% endblock %}

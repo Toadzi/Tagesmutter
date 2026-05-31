@@ -1,0 +1,39 @@
+{% extends "layout.twig" %}
+{% set active_page = 'kinder' %}
+
+{% block title %}Berichte — {{ kind.vorname }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 900px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}" class="text-decoration-none">{{ kind.vorname }}</a></li>
+            <li class="breadcrumb-item active">Berichte</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold mb-0">Berichte — {{ kind.vorname }}</h1>
+        <a href="{{ base_path }}/kinder/{{ kind.id }}/berichte/neu" class="btn btn-sage btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Neuer Bericht
+        </a>
+    </div>
+
+    {% for bericht in berichte %}
+    <a href="{{ base_path }}/kinder/{{ kind.id }}/berichte/{{ bericht.id }}" class="card mb-2 text-decoration-none d-block">
+        <div class="card-body d-flex align-items-center gap-3 py-3">
+            <div class="stat-icon {{ bericht.status == 'final' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }}">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-semibold text-dark">{{ bericht.titel ?: 'Entwicklungsbericht' }}</div>
+                <small class="text-muted">{{ bericht.zeitraum_von|date("d.m.Y") }} – {{ bericht.zeitraum_bis|date("d.m.Y") }} · {{ bericht.erstellt_am|date("d.m.Y") }}</small>
+            </div>
+            <span class="badge {{ bericht.status == 'final' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }}">{{ bericht.status|capitalize }}</span>
+        </div>
+    </a>
+    {% else %}
+    <div class="card text-center py-5"><p class="text-muted mb-0">Noch keine Berichte erstellt.</p></div>
+    {% endfor %}
+</div>
+{% endblock %}

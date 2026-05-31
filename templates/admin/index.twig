@@ -1,0 +1,80 @@
+{% extends "layout.twig" %}
+{% set active_page = 'admin' %}
+{% set admin_tab = 'overview' %}
+
+{% block title %}Administration{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 900px;">
+    <div class="mb-4">
+        <h1 class="h3 fw-bold mb-1">Administration</h1>
+        <p class="text-muted mb-0">Benutzer, Textbausteine und App-Einstellungen verwalten</p>
+    </div>
+
+    {% include 'admin/_subnav.twig' %}
+
+    <div class="row g-3">
+
+        <!-- Benutzer -->
+        <div class="col-md-4">
+            <a href="{{ base_path }}/admin/benutzer" class="text-decoration-none">
+                <div class="card p-4 h-100" style="transition: box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(16,185,129,0.15)'" onmouseout="this.style.boxShadow=''">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="stat-icon" style="background: var(--sage-light); color: var(--sage-dark); width:52px; height:52px; border-radius:14px; font-size:1.4rem;">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div>
+                            <div class="fs-2 fw-bold text-dark lh-1">{{ stats.benutzer }}</div>
+                            <small class="text-muted">Aktive Benutzer</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-2">Benutzer anlegen, Rollen vergeben, Zugänge für Eltern einrichten.</p>
+                    <span class="text-success small fw-semibold"><i class="bi bi-arrow-right me-1"></i>Benutzer verwalten</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Textbausteine -->
+        <div class="col-md-4">
+            <a href="{{ base_path }}/admin/textbausteine" class="text-decoration-none">
+                <div class="card p-4 h-100" style="transition: box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(245,158,11,0.15)'" onmouseout="this.style.boxShadow=''">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="stat-icon" style="background: var(--warm-light); color: #92400e; width:52px; height:52px; border-radius:14px; font-size:1.4rem;">
+                            <i class="bi bi-card-text"></i>
+                        </div>
+                        <div>
+                            <div class="fs-2 fw-bold text-dark lh-1">{{ stats.textbausteine }}</div>
+                            <small class="text-muted">Aktive Bausteine</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-2">Formulierungen für Entwicklungsberichte anpassen, sortieren und exportieren.</p>
+                    <span class="text-warning small fw-semibold" style="color:#92400e!important"><i class="bi bi-arrow-right me-1"></i>Bausteine bearbeiten</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Einstellungen -->
+        <div class="col-md-4">
+            <a href="{{ base_path }}/admin/einstellungen" class="text-decoration-none">
+                <div class="card p-4 h-100" style="transition: box-shadow 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(124,58,237,0.12)'" onmouseout="this.style.boxShadow=''">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="stat-icon" style="background: var(--brand-light); color: var(--brand); width:52px; height:52px; border-radius:14px; font-size:1.4rem;">
+                            <i class="bi bi-sliders"></i>
+                        </div>
+                        <div>
+                            <div class="fs-2 fw-bold text-dark lh-1"><i class="bi bi-gear-fill" style="font-size:1.5rem;color:#7c3aed;"></i></div>
+                            <small class="text-muted">App-Einstellungen</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-2">App-Name, Backup-Intervall, Standard-Berichtszeitraum und mehr.</p>
+                    <span class="small fw-semibold" style="color:var(--brand)"><i class="bi bi-arrow-right me-1"></i>Einstellungen öffnen</span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    {% if stats.letzter_login %}
+    <p class="text-muted small mt-4"><i class="bi bi-clock me-1"></i>Letzter Login: {{ stats.letzter_login|date("d.m.Y H:i") }}</p>
+    {% endif %}
+</div>
+{% endblock %}

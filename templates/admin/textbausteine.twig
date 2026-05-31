@@ -1,0 +1,213 @@
+{% extends "layout.twig" %}
+{% set active_page = 'admin' %}
+{% set admin_tab = 'textbausteine' %}
+
+{% block title %}Textbausteine{% endblock %}
+
+{# bereich_labels / bereich_icons werden global in public/index.php registriert #}
+
+{% block head %}
+<style>
+.baustein-item { cursor: grab; transition: box-shadow 0.15s, opacity 0.15s; }
+.baustein-item:active { cursor: grabbing; }
+.baustein-item.dragging { opacity: 0.4; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.baustein-item.drag-over { box-shadow: 0 -3px 0 var(--sage); }
+.inaktiv-row { opacity: 0.45; }
+.placeholder-badge {
+    font-size: 0.72rem;
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: monospace;
+    cursor: pointer;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1000px;">
+    <div class="mb-4">
+        <h1 class="h3 fw-bold mb-1">Textbausteine</h1>
+        <p class="text-muted mb-0 small">Vorgefertigte Formulierungen für Entwicklungsberichte. <code>{name}</code> wird beim Einfügen durch den Kindsnamen ersetzt.</p>
+    </div>
+
+    {% include 'admin/_subnav.twig' %}
+
+    <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-4">
+        <!-- Export -->
+        <a href="{{ base_path }}/admin/textbausteine/export" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-download me-1"></i> Export JSON
+        </a>
+        <!-- Import -->
+        <button class="btn btn-outline-secondary btn-sm" type="button"
+                data-bs-toggle="collapse" data-bs-target="#importForm">
+            <i class="bi bi-upload me-1"></i> Import JSON
+        </button>
+    </div>
+
+    {% if flash_success %}
+    <div class="alert alert-success alert-dismissible fade show py-2 mb-3">
+        <i class="bi bi-check-circle me-1"></i>{{ flash_success }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Import-Formular -->
+    <div class="collapse mb-4" id="importForm">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="{{ base_path }}/admin/textbausteine/import" enctype="multipart/form-data">
+                    <div class="d-flex align-items-end gap-3 flex-wrap">
+                        <div class="flex-grow-1">
+                            <label class="form-label small">JSON-Datei auswählen</label>
+                            <input type="file" name="import_file" accept=".json" class="form-control form-control-sm" required>
+                            <small class="text-danger">⚠️ Alle bestehenden Bausteine werden überschrieben!</small>
+                        </div>
+                        <button type="submit" class="btn btn-warning btn-sm"
+                                onclick="return confirm('Wirklich alle Bausteine ersetzen?')">
+                            <i class="bi bi-upload me-1"></i> Importieren
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Platzhalter-Hinweis -->
+    <div class="alert alert-info py-2 mb-4 d-flex align-items-center gap-2" style="font-size:0.85rem;">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>Verwende <span class="placeholder-badge" onclick="navigator.clipboard.writeText('{name}')">{name}</span> als Platzhalter — wird beim Einfügen automatisch durch den Vornamen des Kindes ersetzt. Klick zum Kopieren.</span>
+    </div>
+
+    <!-- Bereiche -->
+    {% for bereich in bereiche %}
+    {% set bausteine = grouped[bereich] ?? [] %}
+    <div class="card mb-4" id="{{ bereich }}">
+        <div class="card-header py-3 d-flex align-items-center justify-content-between">
+            <h6 class="fw-semibold mb-0">
+                {{ bereich_icons[bereich] }} {{ bereich_labels[bereich] }}
+                <span class="badge bg-secondary-subtle text-secondary ms-2">{{ bausteine|length }}</span>
+            </h6>
+            <button class="btn btn-sage btn-sm" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#add-{{ bereich }}">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+        </div>
+
+        <!-- Neuen Baustein hinzufügen -->
+        <div class="collapse" id="add-{{ bereich }}">
+            <div class="card-body border-bottom bg-light py-3">
+                <form method="post" action="{{ base_path }}/admin/textbausteine/neu">
+                    <input type="hidden" name="bildungsbereich" value="{{ bereich }}">
+                    <div class="d-flex gap-2 align-items-end">
+                        <div class="flex-grow-1">
+                            <label class="form-label small">Neuer Baustein <span class="text-muted">(mit <code>{name}</code> als Platzhalter)</span></label>
+                            <input type="text" name="text" class="form-control form-control-sm"
+                                   placeholder="{name} …" required>
+                        </div>
+                        <button type="submit" class="btn btn-sage btn-sm">Hinzufügen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Liste der Bausteine -->
+        <ul class="list-group list-group-flush sortable-list" id="list-{{ bereich }}" data-bereich="{{ bereich }}">
+            {% for b in bausteine %}
+            <li class="list-group-item baustein-item {{ b.aktiv ? '' : 'inaktiv-row' }}"
+                data-id="{{ b.id }}" draggable="true">
+                <form method="post" action="{{ base_path }}/admin/textbausteine/{{ b.id }}/bearbeiten"
+                      class="d-flex align-items-center gap-2 w-100">
+                    <input type="hidden" name="bildungsbereich" value="{{ bereich }}">
+                    <!-- Drag-Handle -->
+                    <i class="bi bi-grip-vertical text-muted flex-shrink-0" style="cursor:grab;font-size:1.1rem;"></i>
+                    <!-- Aktiv-Toggle -->
+                    <div class="form-check form-switch mb-0 flex-shrink-0" title="{{ b.aktiv ? 'Aktiv' : 'Inaktiv' }}">
+                        <input type="checkbox" class="form-check-input" name="aktiv" value="1"
+                               {{ b.aktiv ? 'checked' : '' }}
+                               onchange="this.closest('form').submit()"
+                               style="cursor:pointer;">
+                    </div>
+                    <!-- Text -->
+                    <input type="text" name="text" class="form-control form-control-sm flex-grow-1"
+                           value="{{ b.text }}">
+                    <!-- Speichern -->
+                    <button type="submit" class="btn btn-sm btn-light flex-shrink-0" title="Speichern">
+                        <i class="bi bi-check-lg text-success"></i>
+                    </button>
+                </form>
+                <!-- Löschen (außerhalb des Speichern-Formulars) -->
+                <form method="post" action="{{ base_path }}/admin/textbausteine/{{ b.id }}/loeschen"
+                      class="flex-shrink-0 ms-1"
+                      onsubmit="return confirm('Baustein löschen?')"
+                      style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-light" title="Löschen">
+                        <i class="bi bi-trash text-danger"></i>
+                    </button>
+                </form>
+            </li>
+            {% else %}
+            <li class="list-group-item text-center text-muted py-3" id="empty-{{ bereich }}">
+                <small>Noch keine Bausteine. Oben einen hinzufügen.</small>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Drag & Drop Sortierung
+document.querySelectorAll('.sortable-list').forEach(list => {
+    let dragged = null;
+
+    list.addEventListener('dragstart', e => {
+        dragged = e.target.closest('.baustein-item');
+        if (!dragged) return;
+        setTimeout(() => dragged.classList.add('dragging'), 0);
+    });
+
+    list.addEventListener('dragend', e => {
+        const item = e.target.closest('.baustein-item');
+        if (item) item.classList.remove('dragging');
+        list.querySelectorAll('.baustein-item').forEach(i => i.classList.remove('drag-over'));
+        saveSortOrder(list);
+    });
+
+    list.addEventListener('dragover', e => {
+        e.preventDefault();
+        const target = e.target.closest('.baustein-item');
+        if (!target || target === dragged) return;
+        list.querySelectorAll('.baustein-item').forEach(i => i.classList.remove('drag-over'));
+        target.classList.add('drag-over');
+        const rect = target.getBoundingClientRect();
+        const after = e.clientY > rect.top + rect.height / 2;
+        list.insertBefore(dragged, after ? target.nextSibling : target);
+    });
+});
+
+function saveSortOrder(list) {
+    const ids = [...list.querySelectorAll('.baustein-item')].map(el => el.dataset.id);
+    fetch('{{ base_path }}/admin/textbausteine/sortieren', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: ids.map((id, i) => `ids[${i}]=${id}`).join('&')
+    });
+}
+
+// {name} Platzhalter-Badge: Klick kopiert in Zwischenablage
+document.querySelectorAll('.placeholder-badge').forEach(el => {
+    el.title = 'Klick zum Kopieren';
+    el.addEventListener('click', () => {
+        navigator.clipboard.writeText('{name}').then(() => {
+            el.textContent = '✓ Kopiert!';
+            setTimeout(() => el.textContent = '{name}', 1500);
+        });
+    });
+});
+</script>
+{% endblock %}

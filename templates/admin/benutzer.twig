@@ -1,0 +1,92 @@
+{% extends "layout.twig" %}
+{% set active_page = 'admin' %}
+{% set admin_tab = 'benutzer' %}
+
+{% block title %}Benutzerverwaltung{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 900px;">
+    <div class="mb-4">
+        <h1 class="h3 fw-bold mb-1">Benutzerverwaltung</h1>
+        <p class="text-muted mb-0">Zugänge, Rollen und Kind-Zuordnungen verwalten</p>
+    </div>
+
+    {% include 'admin/_subnav.twig' %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <p class="text-muted mb-0">{{ benutzer|length }} Benutzer angelegt</p>
+        <a href="{{ base_path }}/admin/benutzer/neu" class="btn btn-sage btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Benutzer anlegen
+        </a>
+    </div>
+
+    {% if flash_success %}
+    <div class="alert alert-success alert-dismissible fade show py-2 mb-3">
+        <i class="bi bi-check-circle me-1"></i>{{ flash_success }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="list-group list-group-flush">
+            {% for b in benutzer %}
+            <div class="list-group-item d-flex align-items-center gap-3 py-3">
+                <div class="avatar-placeholder" style="width:42px;height:42px;border-radius:12px;font-size:0.9rem;
+                    background: {{ b.rolle == 'admin' ? 'linear-gradient(135deg,#557d58,#365038)' : 'linear-gradient(135deg,#c7d7c8,#a0bba2)' }};
+                    color: {{ b.rolle == 'admin' ? '#fff' : '#365038' }};">
+                    {{ b.name|first|upper }}
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-semibold">{{ b.name }}</span>
+                        {% if not b.aktiv %}
+                        <span class="badge bg-secondary-subtle text-secondary">Inaktiv</span>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">
+                        @{{ b.benutzername }}
+                        {% if b.rolle == 'admin' %}
+                        <span class="badge bg-success-subtle text-success ms-1">Admin</span>
+                        {% elseif b.rolle == 'eltern' %}
+                        <span class="badge bg-primary-subtle text-primary ms-1">Eltern</span>
+                        {% else %}
+                        <span class="badge bg-info-subtle text-info ms-1">Leserecht</span>
+                        {% endif %}
+                        {% if b.kind_name %}
+                        · Kind: {{ b.kind_name }}
+                        {% endif %}
+                        {% if b.letzter_login %}
+                        · Login: {{ b.letzter_login|date("d.m.Y H:i") }}
+                        {% endif %}
+                    </small>
+                </div>
+                <div class="d-flex gap-1">
+                    <a href="{{ base_path }}/admin/benutzer/{{ b.id }}/bearbeiten" class="btn btn-sm btn-light">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    {% if b.id != session_user_id %}
+                    <form method="post" action="{{ base_path }}/admin/benutzer/{{ b.id }}/loeschen" onsubmit="return confirm('Benutzer {{ b.name }} wirklich löschen?')">
+                        <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0"><i class="bi bi-info-circle me-1"></i> Rollen-Erklärung</h6></div>
+        <div class="card-body">
+            <dl class="row mb-0 small">
+                <dt class="col-sm-3"><span class="badge bg-success-subtle text-success">Admin</span></dt>
+                <dd class="col-sm-9">Vollzugriff — alle Kinder, alle Funktionen, Benutzerverwaltung</dd>
+                <dt class="col-sm-3"><span class="badge bg-primary-subtle text-primary">Eltern</span></dt>
+                <dd class="col-sm-9">Nur das eigene Kind — Tagebuch, Portfolio, Anwesenheit lesen (kein Bearbeiten)</dd>
+                <dt class="col-sm-3"><span class="badge bg-info-subtle text-info">Leserecht</span></dt>
+                <dd class="col-sm-9 mb-0">Wie Eltern, aber explizit nur Leserecht (z.B. für Großeltern)</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+{% endblock %}

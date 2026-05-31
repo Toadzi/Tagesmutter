@@ -1,0 +1,145 @@
+{% extends "layout.twig" %}
+{% set active_page = 'kinder' %}
+
+{% block title %}Tagebuch — {{ kind.vorname }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 900px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}" class="text-decoration-none">{{ kind.vorname }}</a></li>
+            <li class="breadcrumb-item active">Tagebuch</li>
+        </ol>
+    </nav>
+
+    <h1 class="h3 fw-bold mb-4">Tagebuch — {{ kind.vorname }}</h1>
+
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-sm-3">
+                    <label class="form-label">Kategorie</label>
+                    <select name="kategorie" class="form-select form-select-sm">
+                        <option value="">Alle</option>
+                        {% for kat in kategorien %}
+                        <option value="{{ kat }}" {{ (filter.kategorie ?? '') == kat ? 'selected' : '' }}>{{ kat|capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <label class="form-label">Von</label>
+                    <input type="date" name="von" class="form-control form-control-sm" value="{{ filter.von ?? '' }}">
+                </div>
+                <div class="col-sm-3">
+                    <label class="form-label">Bis</label>
+                    <input type="date" name="bis" class="form-control form-control-sm" value="{{ filter.bis ?? '' }}">
+                </div>
+                <div class="col-sm-3">
+                    <button type="submit" class="btn btn-sage btn-sm w-100">Filtern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- New entry -->
+    <div class="card mb-4">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0">Neuer Eintrag</h6></div>
+        <div class="card-body">
+            <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/tagebuch/neu" enctype="multipart/form-data">
+                <input type="hidden" name="datum" value="{{ current_date }}">
+                <div class="mb-3">
+                    <input type="text" name="titel" class="form-control" placeholder="Titel (optional)">
+                </div>
+                <div class="mb-3">
+                    <textarea name="text" rows="4" class="form-control" placeholder="Was ist heute passiert?" required></textarea>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                    <div class="stimmung-select d-flex gap-1">
+                        {% for i in 1..5 %}
+                        <label>
+                            <input type="radio" name="stimmung" value="{{ i }}" class="d-none">
+                            <span class="fs-4" style="opacity:0.35;cursor:pointer">{{ ['','😢','😕','😐','😊','😄'][i] }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    <div class="kategorie-check d-flex flex-wrap gap-1">
+                        {% for kat in kategorien %}
+                        <label>
+                            <input type="checkbox" name="kategorien[]" value="{{ kat }}" class="d-none">
+                            <span class="badge bg-light text-dark" style="cursor:pointer">{{ kat|capitalize }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- Foto-Upload -->
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Fotos hinzufügen (optional)</label>
+                    <input type="file" name="tagebuch_fotos[]" accept="image/*" multiple class="form-control form-control-sm">
+                </div>
+                <div class="d-flex align-items-center justify-content-between gap-3">
+                    <div class="form-check mb-0">
+                        <input type="checkbox" name="als_meilenstein" value="1" class="form-check-input" id="meilensteinCheckIdx">
+                        <label class="form-check-label small" for="meilensteinCheckIdx">
+                            🏅 Als Meilenstein festhalten
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-sage btn-sm">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Entries -->
+    {% for eintrag in eintraege %}
+    {% set eintrag_fotos = fotos_by_eintrag[eintrag.id] ?? [] %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <small class="text-muted">{{ eintrag.datum|date("d.m.Y") }}</small>
+                        {% if eintrag.stimmung %}<span>{{ ['','😢','😕','😐','😊','😄'][eintrag.stimmung] }}</span>{% endif %}
+                        {% if eintrag_fotos|length > 0 %}
+                        <small class="text-muted"><i class="bi bi-image"></i> {{ eintrag_fotos|length }}</small>
+                        {% endif %}
+                    </div>
+                    {% if eintrag.titel %}<h6 class="fw-semibold mb-1">{{ eintrag.titel }}</h6>{% endif %}
+                    <p class="mb-2 small" style="white-space:pre-line">{{ eintrag.text }}</p>
+                    {% set kats = eintrag.kategorien ? eintrag.kategorien|replace({"[":"","]":"","\"":""})|split(',') : [] %}
+                    {% if kats|length > 0 and kats[0] != '' %}
+                    <div class="d-flex gap-1 mb-2">
+                        {% for kat in kats %}<span class="badge badge-sage">{{ kat|trim }}</span>{% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-1 ms-2 flex-shrink-0">
+                    <a href="{{ base_path }}/kinder/{{ kind.id }}/tagebuch/{{ eintrag.id }}/bearbeiten" class="btn btn-sm btn-light"><i class="bi bi-pencil"></i></a>
+                    <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/tagebuch/{{ eintrag.id }}/loeschen" onsubmit="return confirm('Löschen?')">
+                        <button class="btn btn-sm btn-light text-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            {# Foto-Galerie des Eintrags #}
+            {% if eintrag_fotos|length > 0 %}
+            <div class="row g-2 mt-1">
+                {% for foto in eintrag_fotos %}
+                <div class="col-4 col-sm-3 col-md-2">
+                    <a href="{{ base_path }}/uploads/{{ foto.dateiname }}" target="_blank">
+                        <img src="{{ base_path }}/uploads/{{ foto.thumbnail ?: foto.dateiname }}"
+                             alt="{{ foto.beschreibung }}"
+                             class="img-fluid rounded"
+                             style="aspect-ratio:1;object-fit:cover;width:100%;">
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card text-center py-4"><p class="text-muted mb-0">Keine Einträge gefunden.</p></div>
+    {% endfor %}
+</div>
+{% endblock %}

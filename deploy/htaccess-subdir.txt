@@ -1,0 +1,15 @@
+# Apache .htaccess für Unterverzeichnis-Installation
+# Datei nach public/.htaccess kopieren.
+# APP_BASE_PATH in config.php muss z.B. auf '/tagesmutter' gesetzt sein.
+# RewriteBase muss mit dem Unterverzeichnis übereinstimmen.
+
+Options -Indexes
+RewriteEngine On
+RewriteBase /tagesmutter/
+
+# Reale Dateien/Verzeichnisse direkt ausliefern
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Alles andere → index.php
+RewriteRule ^ index.php [QSA,L]

@@ -1,0 +1,81 @@
+{% extends "layout.twig" %}
+{% set active_page = 'kinder' %}
+
+{% block title %}Portfolio — {{ kind.vorname }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1200px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}" class="text-decoration-none">{{ kind.vorname }}</a></li>
+            <li class="breadcrumb-item active">Portfolio</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 fw-bold mb-0">Portfolio — {{ kind.vorname }}</h1>
+        <a href="{{ base_path }}/kinder/{{ kind.id }}/portfolio/pdf" class="btn btn-warm btn-sm">
+            <i class="bi bi-file-pdf me-1"></i> PDF Export
+        </a>
+    </div>
+
+    <!-- Upload -->
+    <div class="card mb-4">
+        <div class="card-header py-3"><h6 class="fw-semibold mb-0">Fotos hochladen</h6></div>
+        <div class="card-body">
+            <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/portfolio/upload" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <input type="file" name="fotos[]" accept="image/*" multiple class="form-control">
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label">Beschreibung</label>
+                        <input type="text" name="beschreibung" class="form-control">
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label">Aufnahmedatum</label>
+                        <input type="date" name="aufnahme_datum" class="form-control" value="{{ current_date }}">
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label">Tagebucheintrag</label>
+                        <select name="tagebuch_id" class="form-select">
+                            <option value="">— keiner —</option>
+                            {% for t in tagebuch_eintraege %}
+                            <option value="{{ t.id }}">{{ t.datum|date("d.m.") }} {{ t.titel ?: '(ohne Titel)' }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-sage btn-sm">Hochladen</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Photo Grid -->
+    <div class="row g-3">
+        {% for foto in fotos %}
+        <div class="col-6 col-sm-4 col-lg-3">
+            <div class="card h-100 position-relative">
+                <img src="{{ base_path }}/uploads/{{ foto.thumbnail ?: foto.dateiname }}" alt="{{ foto.beschreibung }}" class="card-img-top" style="aspect-ratio:1;object-fit:cover;">
+                <div class="card-body p-2">
+                    <small class="text-muted">{{ foto.aufnahme_datum ? foto.aufnahme_datum|date("d.m.Y") : '' }}</small>
+                    {% if foto.beschreibung %}<p class="small mb-0 text-truncate">{{ foto.beschreibung }}</p>{% endif %}
+                    {% if foto.tagebuch_titel %}<small class="text-muted"><i class="bi bi-journal-text me-1"></i>{{ foto.tagebuch_titel }}</small>{% endif %}
+                </div>
+                <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/portfolio/{{ foto.id }}/loeschen" class="position-absolute top-0 end-0 m-1" onsubmit="return confirm('Foto löschen?')">
+                    <button class="btn btn-sm btn-dark rounded-circle" style="width:28px;height:28px;padding:0;opacity:0.7;">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="card text-center py-5"><p class="text-muted mb-0">Noch keine Fotos hochgeladen.</p></div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

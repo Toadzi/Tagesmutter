@@ -1,0 +1,61 @@
+{% extends "layout.twig" %}
+{% set active_page = 'kinder' %}
+
+{% block title %}{{ bericht.titel }} — {{ kind.vorname }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 900px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}" class="text-decoration-none">{{ kind.vorname }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}?tab=berichte" class="text-decoration-none">Berichte</a></li>
+            <li class="breadcrumb-item active">{{ bericht.titel }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">{{ bericht.titel ?: 'Entwicklungsbericht' }}</h1>
+            <p class="text-muted mb-0">
+                {{ bericht.zeitraum_von|date("d.m.Y") }} – {{ bericht.zeitraum_bis|date("d.m.Y") }}
+                <span class="badge {{ bericht.status == 'final' ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }} ms-2">{{ bericht.status|capitalize }}</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ base_path }}/kinder/{{ kind.id }}/berichte/{{ bericht.id }}/pdf" class="btn btn-warm btn-sm">
+                <i class="bi bi-file-pdf me-1"></i> PDF
+            </a>
+            <a href="{{ base_path }}/kinder/{{ kind.id }}/berichte/{{ bericht.id }}/bearbeiten" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-pencil me-1"></i> Bearbeiten
+            </a>
+            <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/berichte/{{ bericht.id }}/loeschen" onsubmit="return confirm('Bericht löschen?')">
+                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+            </form>
+        </div>
+    </div>
+
+    {% for bereich in bildungsbereiche %}
+        {% if bericht.inhalt_parsed[bereich] is defined and bericht.inhalt_parsed[bereich] %}
+        <div class="card mb-3">
+            <div class="card-header py-3">
+                <h6 class="fw-semibold mb-0">{{ bereich_icons[bereich] ?? '' }} {{ bereich_labels[bereich] ?? bereich|capitalize }}</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0" style="white-space: pre-line;">{{ bericht.inhalt_parsed[bereich] }}</p>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+
+    {% if bericht.inhalt_parsed['_gesamteinschaetzung'] is defined and bericht.inhalt_parsed['_gesamteinschaetzung'] %}
+    <div class="card mb-3" style="border-left: 3px solid var(--warm);">
+        <div class="card-header py-3">
+            <h6 class="fw-semibold mb-0">✨ Gesamteinschätzung</h6>
+        </div>
+        <div class="card-body">
+            <p class="mb-0" style="white-space: pre-line;">{{ bericht.inhalt_parsed['_gesamteinschaetzung'] }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

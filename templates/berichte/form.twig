@@ -1,0 +1,337 @@
+{% extends "layout.twig" %}
+{% set active_page = 'kinder' %}
+
+{% block title %}{{ is_new ? 'Neuer Bericht' : 'Bericht bearbeiten' }}{% endblock %}
+
+{# textbausteine comes from controller (DB), keyed by bildungsbereich #}
+{# bereich_labels / bereich_icons werden global in public/index.php registriert #}
+
+{% block head %}
+<style>
+.bereich-card { transition: box-shadow 0.2s; }
+.bereich-card.has-content { border-left: 3px solid var(--sage); }
+.baustein-btn {
+    font-size: 0.78rem;
+    padding: 3px 8px;
+    background: var(--sage-light);
+    color: var(--sage-dark);
+    border: 1px solid #c5d8c6;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: normal;
+    text-align: left;
+    line-height: 1.3;
+    transition: background 0.15s;
+}
+.baustein-btn:hover { background: #c5d8c6; }
+.char-count { font-size: 0.72rem; color: #aaa; text-align: right; }
+.progress-label { font-size: 0.78rem; }
+.ref-entry { cursor: pointer; transition: background 0.15s; }
+.ref-entry:hover { background: var(--sage-light) !important; }
+.ref-entry.used { opacity: 0.45; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 1300px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}" class="text-decoration-none">{{ kind.vorname }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}?tab=berichte" class="text-decoration-none">Berichte</a></li>
+            <li class="breadcrumb-item active">{{ is_new ? 'Neu' : 'Bearbeiten' }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <h1 class="h3 fw-bold mb-0">{{ is_new ? 'Neuer Entwicklungsbericht' : 'Bericht bearbeiten' }}</h1>
+        {% if is_new and letzter_bericht %}
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="ladeVorlage()">
+            <i class="bi bi-clock-history me-1"></i> Letzten Bericht als Vorlage laden
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Fortschrittsbalken -->
+    <div class="card mb-4 py-2 px-3">
+        <div class="d-flex align-items-center gap-3">
+            <span class="progress-label text-muted">Bereiche ausgefüllt:</span>
+            <div class="flex-grow-1">
+                <div class="progress" style="height:8px;border-radius:4px;">
+                    <div class="progress-bar bg-success" id="progressBar" style="width:0%;transition:width 0.3s;border-radius:4px;"></div>
+                </div>
+            </div>
+            <span class="progress-label fw-semibold" id="progressText">0 / {{ bildungsbereiche|length + 1 }}</span>
+        </div>
+    </div>
+
+    <form method="post" id="berichtForm"
+          action="{{ base_path ~ (is_new ? '/kinder/' ~ kind.id ~ '/berichte/neu' : '/kinder/' ~ kind.id ~ '/berichte/' ~ bericht.id ~ '/bearbeiten') }}">
+        <div class="row g-4">
+
+            <!-- LEFT: Formular -->
+            <div class="col-lg-7">
+
+                <!-- Allgemein -->
+                <div class="card mb-4">
+                    <div class="card-header py-3"><h6 class="fw-semibold mb-0">Allgemein</h6></div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Titel</label>
+                                <input type="text" name="titel" class="form-control"
+                                       value="{{ bericht.titel ?? 'Entwicklungsbericht ' ~ kind.vorname }}">
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label">Von</label>
+                                <input type="date" name="zeitraum_von" class="form-control" value="{{ von }}" required>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label">Bis</label>
+                                <input type="date" name="zeitraum_bis" class="form-control" value="{{ bis }}" required>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="form-label">Status</label>
+                                <select name="status" class="form-select">
+                                    <option value="entwurf" {{ (bericht.status ?? 'entwurf') == 'entwurf' ? 'selected' : '' }}>Entwurf</option>
+                                    <option value="final" {{ (bericht.status ?? '') == 'final' ? 'selected' : '' }}>Final</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bereiche -->
+                {% for bereich in bildungsbereiche %}
+                <div class="card mb-3 bereich-card" id="card-{{ bereich }}">
+                    <div class="card-header py-2">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <h6 class="fw-semibold mb-0 small">
+                                {{ bereich_icons[bereich] }} {{ bereich_labels[bereich] }}
+                            </h6>
+                            <button type="button" class="btn btn-sm btn-light py-0 px-2"
+                                    style="font-size:0.75rem;"
+                                    onclick="uebernehmEintraege('{{ bereich }}')">
+                                <i class="bi bi-arrow-left-circle me-1"></i>Aus Einträgen übernehmen
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body pb-2">
+                        <!-- Textbausteine -->
+                        <div class="d-flex flex-wrap gap-1 mb-2" id="bausteine-{{ bereich }}">
+                            {% for baustein in (textbausteine[bereich] ?? []) %}
+                            <button type="button" class="baustein-btn"
+                                    data-tpl="{{ baustein|e('html_attr') }}"
+                                    onclick="fuegeEin('{{ bereich }}', this)">{{ baustein|replace({'{name}': kind.vorname}) }}</button>
+                            {% endfor %}
+                        </div>
+                        <textarea name="bereiche[{{ bereich }}]"
+                                  id="ta-{{ bereich }}"
+                                  rows="4"
+                                  class="form-control bereich-ta"
+                                  data-bereich="{{ bereich }}"
+                                  placeholder="Beobachtungen zu {{ bereich_labels[bereich] }}…"
+                                  oninput="updateProgress();updateCharCount(this)">{{ bericht.inhalt_parsed[bereich] ?? '' }}</textarea>
+                        <div class="char-count mt-1" id="cc-{{ bereich }}">0 Zeichen</div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Gesamteinschätzung -->
+                <div class="card mb-4 bereich-card" id="card-_gesamteinschaetzung">
+                    <div class="card-header py-2">
+                        <h6 class="fw-semibold mb-0 small">✨ Gesamteinschätzung</h6>
+                    </div>
+                    <div class="card-body pb-2">
+                        <textarea name="gesamteinschaetzung"
+                                  id="ta-_gesamteinschaetzung"
+                                  rows="4"
+                                  class="form-control bereich-ta"
+                                  data-bereich="_gesamteinschaetzung"
+                                  placeholder="Zusammenfassende Einschätzung der Entwicklung im Berichtszeitraum…"
+                                  oninput="updateProgress();updateCharCount(this)">{{ bericht.inhalt_parsed['_gesamteinschaetzung'] ?? '' }}</textarea>
+                        <div class="char-count mt-1" id="cc-_gesamteinschaetzung">0 Zeichen</div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mb-4">
+                    <button type="submit" class="btn btn-sage"><i class="bi bi-check-lg me-1"></i>Speichern</button>
+                    <a href="{{ base_path }}/kinder/{{ kind.id }}?tab=berichte" class="btn btn-outline-secondary">Abbrechen</a>
+                </div>
+            </div>
+
+            <!-- RIGHT: Referenz-Einträge -->
+            <div class="col-lg-5">
+                <div class="card position-sticky" style="top:1rem;">
+                    <div class="card-header py-3 d-flex align-items-center justify-content-between">
+                        <h6 class="fw-semibold mb-0"><i class="bi bi-journal-text me-1"></i>Referenz</h6>
+                        <small class="text-muted">Klick = in Bereich übernehmen</small>
+                    </div>
+                    <div class="card-body p-0" style="max-height:72vh;overflow-y:auto;">
+
+                        {% for bereich, entries in grouped_entries %}
+                        <div class="border-bottom" id="ref-section-{{ bereich }}">
+                            <div class="px-3 py-2 bg-light d-flex align-items-center gap-2">
+                                <span>{{ bereich_icons[bereich] ?? '📌' }}</span>
+                                <small class="fw-semibold text-uppercase text-muted">{{ bereich_labels[bereich] ?? bereich|capitalize }}</small>
+                                <span class="badge bg-secondary-subtle text-secondary ms-auto">{{ entries|length }}</span>
+                            </div>
+                            {% for entry in entries %}
+                            <div class="px-3 py-2 border-top ref-entry"
+                                 id="ref-entry-{{ entry.id }}"
+                                 data-bereich="{{ bereich }}"
+                                 data-text="{{ entry.datum|date('d.m.Y') }}: {% if entry.titel %}{{ entry.titel }} — {% endif %}{{ entry.text|replace({'\n': ' ', '\r': ''}) }}"
+                                 onclick="klickEintrag(this)"
+                                 style="font-size:0.85rem;">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ entry.datum|date("d.m.") }}</strong>
+                                    {% if entry.stimmung %}<span>{{ ['','😢','😕','😐','😊','😄'][entry.stimmung] }}</span>{% endif %}
+                                </div>
+                                {% if entry.titel %}<div class="fw-semibold">{{ entry.titel }}</div>{% endif %}
+                                <div class="text-muted" style="white-space:pre-line">{{ entry.text|length > 180 ? entry.text[:180] ~ '…' : entry.text }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+
+                        {% if meilensteine|length > 0 %}
+                        <div class="border-bottom" id="ref-section-meilensteine">
+                            <div class="px-3 py-2 bg-light d-flex align-items-center gap-2">
+                                <span>🏅</span>
+                                <small class="fw-semibold text-uppercase text-muted">Meilensteine</small>
+                                <span class="badge bg-secondary-subtle text-secondary ms-auto">{{ meilensteine|length }}</span>
+                            </div>
+                            {% for m in meilensteine %}
+                            <div class="px-3 py-2 border-top ref-entry"
+                                 id="ref-ms-{{ m.id }}"
+                                 data-bereich="{{ m.bildungsbereich ?: 'alltag' }}"
+                                 data-text="🏅 {{ m.datum|date('d.m.Y') }}: {{ m.beschreibung }}"
+                                 onclick="klickEintrag(this)"
+                                 style="font-size:0.85rem;">
+                                <strong>{{ m.datum|date("d.m.") }}</strong>
+                                {% if m.bildungsbereich %}<span class="badge badge-sage ms-1">{{ m.bildungsbereich }}</span>{% endif %}
+                                <div class="text-muted">{{ m.beschreibung }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if grouped_entries|length == 0 and meilensteine|length == 0 %}
+                        <div class="p-4 text-center text-muted">
+                            <i class="bi bi-journal-x d-block fs-2 mb-2 opacity-25"></i>
+                            <small>Keine Einträge im gewählten Zeitraum.</small>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Vorlage aus letztem Bericht
+{% if is_new and letzter_bericht %}
+const letzterBericht = {{ letzter_bericht.inhalt_parsed|json_encode|raw }};
+function ladeVorlage() {
+    if (!confirm('Den letzten Bericht als Vorlage laden? Bisherige Eingaben werden überschrieben.')) return;
+    Object.entries(letzterBericht).forEach(([bereich, text]) => {
+        if (bereich === '_gesamteinschaetzung') {
+            const ta = document.getElementById('ta-_gesamteinschaetzung');
+            if (ta) { ta.value = text; updateCharCount(ta); }
+        } else {
+            const ta = document.getElementById('ta-' + bereich);
+            if (ta) { ta.value = text; updateCharCount(ta); }
+        }
+    });
+    updateProgress();
+}
+{% else %}
+function ladeVorlage() {}
+{% endif %}
+
+// Textbaustein einfügen ({name} bereits serverseitig ersetzt)
+function fuegeEin(bereich, btn) {
+    const ta = document.getElementById('ta-' + bereich);
+    const satz = btn.textContent.trim();
+    const sep = ta.value.length > 0 && !ta.value.endsWith('\n') ? ' ' : '';
+    ta.value += sep + satz;
+    ta.focus();
+    btn.style.opacity = '0.4';
+    setTimeout(() => btn.style.opacity = '', 1500);
+    updateProgress();
+    updateCharCount(ta);
+}
+
+// Referenzeintrag per Klick übernehmen
+function klickEintrag(el) {
+    const bereich = el.dataset.bereich;
+    const text = el.dataset.text;
+    const ta = document.getElementById('ta-' + bereich) || document.getElementById('ta-alltag');
+    if (!ta) return;
+    const sep = ta.value.length > 0 ? '\n' : '';
+    ta.value += sep + text;
+    el.classList.toggle('used');
+    ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    ta.focus();
+    updateProgress();
+    updateCharCount(ta);
+}
+
+// Alle Einträge eines Bereichs auf einmal übernehmen
+function uebernehmEintraege(bereich) {
+    const section = document.getElementById('ref-section-' + bereich);
+    if (!section) return;
+    const entries = section.querySelectorAll('.ref-entry:not(.used)');
+    if (entries.length === 0) { alert('Keine neuen Einträge in diesem Bereich.'); return; }
+    const ta = document.getElementById('ta-' + bereich);
+    entries.forEach(el => {
+        const sep = ta.value.length > 0 ? '\n' : '';
+        ta.value += sep + el.dataset.text;
+        el.classList.add('used');
+    });
+    updateProgress();
+    updateCharCount(ta);
+    ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    ta.focus();
+}
+
+// Fortschrittsbalken
+function updateProgress() {
+    const tas = document.querySelectorAll('.bereich-ta');
+    let filled = 0;
+    tas.forEach(ta => {
+        const card = document.getElementById('card-' + ta.dataset.bereich);
+        if (ta.value.trim().length > 0) {
+            filled++;
+            if (card) card.classList.add('has-content');
+        } else {
+            if (card) card.classList.remove('has-content');
+        }
+    });
+    const total = tas.length;
+    const pct = Math.round((filled / total) * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressText').textContent = filled + ' / ' + total;
+    document.getElementById('progressBar').className =
+        'progress-bar border-radius-4 ' + (pct === 100 ? 'bg-success' : pct >= 50 ? 'bg-info' : 'bg-warning');
+}
+
+// Zeichenzähler
+function updateCharCount(ta) {
+    const cc = document.getElementById('cc-' + ta.dataset.bereich);
+    if (cc) cc.textContent = ta.value.length + ' Zeichen';
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.bereich-ta').forEach(ta => {
+        updateCharCount(ta);
+    });
+    updateProgress();
+});
+</script>
+{% endblock %}

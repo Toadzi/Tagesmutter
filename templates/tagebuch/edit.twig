@@ -1,0 +1,74 @@
+{% extends "layout.twig" %}
+{% set active_page = 'kinder' %}
+
+{% block title %}Eintrag bearbeiten{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width: 800px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}" class="text-decoration-none">{{ kind.vorname }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ base_path }}/kinder/{{ kind.id }}?tab=tagebuch" class="text-decoration-none">Tagebuch</a></li>
+            <li class="breadcrumb-item active">Bearbeiten</li>
+        </ol>
+    </nav>
+
+    <h1 class="h3 fw-bold mb-4">Eintrag bearbeiten</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{{ base_path }}/kinder/{{ kind.id }}/tagebuch/{{ eintrag.id }}/bearbeiten" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="form-label">Datum</label>
+                        <input type="date" name="datum" class="form-control" value="{{ eintrag.datum }}">
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="form-label">Titel</label>
+                        <input type="text" name="titel" class="form-control" value="{{ eintrag.titel }}">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Text *</label>
+                        <textarea name="text" rows="5" class="form-control" required>{{ eintrag.text }}</textarea>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <div class="stimmung-select d-flex gap-1">
+                                {% for i in 1..5 %}
+                                <label>
+                                    <input type="radio" name="stimmung" value="{{ i }}" class="d-none" {{ eintrag.stimmung == i ? 'checked' : '' }}>
+                                    <span class="fs-4" style="opacity:{{ eintrag.stimmung == i ? '1' : '0.35' }};cursor:pointer">{{ ['','😢','😕','😐','😊','😄'][i] }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            {% set currentKats = eintrag.kategorien ? eintrag.kategorien|replace({"[":"","]":"","\"":""})|split(',') : [] %}
+                            <div class="kategorie-check d-flex flex-wrap gap-1">
+                                {% for kat in kategorien %}
+                                <label>
+                                    <input type="checkbox" name="kategorien[]" value="{{ kat }}" class="d-none" {{ kat in currentKats ? 'checked' : '' }}>
+                                    <span class="badge {{ kat in currentKats ? 'badge-sage' : 'bg-light text-dark' }}" style="cursor:pointer">{{ kat|capitalize }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Weitere Fotos hinzufügen</label>
+                        <input type="file" name="tagebuch_fotos[]" accept="image/*" multiple class="form-control form-control-sm">
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check mb-3">
+                            <input type="checkbox" name="als_meilenstein" value="1" class="form-check-input" id="meilensteinCheckEdit">
+                            <label class="form-check-label" for="meilensteinCheckEdit">
+                                🏅 Als Meilenstein festhalten <small class="text-muted">(erstellt einen neuen Meilenstein-Eintrag)</small>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-sage">Speichern</button>
+                        <a href="{{ base_path }}/kinder/{{ kind.id }}?tab=tagebuch" class="btn btn-outline-secondary">Abbrechen</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
