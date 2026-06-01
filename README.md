@@ -26,6 +26,10 @@ Eine einfach zu bedienende Webanwendung zur Verwaltung von Tageskindern — für
 | PDF-Export | DomPDF |
 | Abhängigkeiten | PHP-DI, Intervention Image |
 
+## Warum Twig
+
+Twig wird eingesetzt, weil es Sicherheit (automatisches Escaping), saubere Trennung von Logik und Darstellung sowie Wiederverwendung (Vererbung/Partials) ohne nennenswerten Mehraufwand liefert und sich nahtlos in Slim 4 integriert. Konkret genutzt werden ein zentrales Vererbungslayout, Blöcke und Includes, globale Variablen für Layout/Session/Konfiguration sowie die eingebauten Filter für Datum, Text und Formatierung.
+
 ## Installation
 
 ### Voraussetzungen
