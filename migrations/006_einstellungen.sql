@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS einstellungen (
 );
 
 INSERT OR IGNORE INTO einstellungen (schluessel, wert, beschreibung) VALUES
-('app_name',                  'Tagesmutter',          'Name der App (Sidebar & Titel)'),
+('app_name',                  'MiniStep',             'Name der App (Sidebar & Titel)'),
 ('app_subtitle',              'Verwaltung',           'Untertitel in der Sidebar'),
 ('bericht_zeitraum_monate',   '6',                    'Standardzeitraum für neue Entwicklungsberichte (Monate)'),
 ('backup_aktiv',              '1',                    'Automatisches Datenbank-Backup aktiviert'),
