@@ -178,8 +178,6 @@ Injection), DomPDF (PDF-Export), Intervention Image / GD (Bildbearbeitung), Boot
 
 ## Known bugs
 
-* Der Standard-Admin muss nach der ersten Anmeldung manuell geändert
-  werden – wird er vergessen, ist die Installation unsicher.
 * Es gibt aktuell **keinen CSRF-Token** für Formulare; Schutz erfolgt über `SameSite=Strict`-
   Cookies. Für einen produktiven Einsatz wäre ein CSRF-Token sinnvoll.
 * Beim Betrieb über HTTPS muss `session.cookie_secure` in `public/index.php` noch aktiviert
