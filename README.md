@@ -60,7 +60,7 @@ hier alles vollständig an einem Ort befindet (betrifft WebApp).*
 
 ### Setup
 
-* **WebApp (Demo):** https://web-app-server.de/tagesmutter/login
+* **WebApp (Demo):** https://web-app-server.de/ministep/login
 
 #### Installationsanleitung WebApp (SQLite-Variante)
 
