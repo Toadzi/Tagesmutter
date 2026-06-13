@@ -54,7 +54,6 @@ hier alles vollständig an einem Ort befindet (betrifft WebApp).*
   * Admin-Bereich: Einstellungen, Benutzerverwaltung, Textbausteine
 
 * **Welche Features wurden nicht umgesetzt? (Warum)**
-  *(bitte für die Abgabe an euren tatsächlichen Stand anpassen — Beispiele:)*
   * Push-/E-Mail-Benachrichtigungen an Eltern – aus Zeitgründen zurückgestellt.
   * Echtzeit-Kommunikation/Chat – Scope-Reduktion zugunsten der Kerndokumentation.
 
