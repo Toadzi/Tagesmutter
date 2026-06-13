@@ -182,8 +182,6 @@ Injection), DomPDF (PDF-Export), Intervention Image / GD (Bildbearbeitung), Boot
   Cookies. Für einen produktiven Einsatz wäre ein CSRF-Token sinnvoll.
 * Beim Betrieb über HTTPS muss `session.cookie_secure` in `public/index.php` noch aktiviert
   werden (im Code als Kommentar vorbereitet).
-* Das automatische Backup nutzt bei der MySQL-Variante `mysqldump`; ist es nicht verfügbar,
-  wird das Backup stillschweigend übersprungen (bei SQLite wird die Datei kopiert).
 
 
 ## Umsetzungsprozess
@@ -198,8 +196,6 @@ Injection), DomPDF (PDF-Export), Intervention Image / GD (Bildbearbeitung), Boot
 * **Herausforderungen & Lösungen:**
   * Trennung von Darstellung und Logik konsequent über Twig (automatisches Escaping als
     XSS-Schutz, zentrale Layout-Vererbung). Siehe `docs/Templating-Twig.md`.
-  * Portabilität der Datenbank: Damit neben SQLite optional MySQL/MariaDB möglich ist, wurde
-    der Datenbankzugriff über einen Treiber-Helper (DSN, UPSERT) abstrahiert.
 
 * **KI-Einsatz:**
   Für Refactoring (Beseitigung von Code-Duplikaten, Einführung von Repositories/Services),
