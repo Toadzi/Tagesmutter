@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: PDF-Erzeugung mit DomPDF aus PHP-Vorlagen inkl. passender HTTP-Response.
+ */
+
 namespace App\Services;
 
 use Dompdf\Dompdf;

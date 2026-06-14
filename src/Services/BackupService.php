@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Automatisches Datenbank-Backup (Kopie der SQLite-Datei) inkl. Aufräumen alter Backups.
+ */
+
 namespace App\Services;
 
 class BackupService

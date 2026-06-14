@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Bildverarbeitung: Erzeugen von Thumbnails aus hochgeladenen Fotos.
+ */
+
 namespace App\Services;
 
 /**

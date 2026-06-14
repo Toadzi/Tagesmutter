@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Helfer für Datei-Uploads: Verzeichnisse anlegen, Endungen ermitteln und erlaubte Bildtypen prüfen.
+ */
+
 namespace App\Services;
 
 use Psr\Http\Message\UploadedFileInterface;
