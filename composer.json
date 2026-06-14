@@ -1,0 +1,19 @@
+{
+    "name": "ministep/app",
+    "description": "MiniStep — Tagespflege-Verwaltung: Kinderakte, Tagebuch, Portfolio, Anwesenheit, PDF-Export",
+    "type": "project",
+    "require": {
+        "php": ">=8.2",
+        "slim/slim": "^4.14",
+        "slim/psr7": "^1.7",
+        "php-di/slim-bridge": "^3.4",
+        "slim/twig-view": "^3.4",
+        "dompdf/dompdf": "^3.0",
+        "intervention/image": "^3.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}
