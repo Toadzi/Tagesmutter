@@ -62,8 +62,8 @@ hier alles vollständig an einem Ort befindet (betrifft WebApp).*
 Twig wird eingesetzt, weil es Sicherheit (automatisches Escaping), saubere Trennung
 von Logik und Darstellung sowie Wiederverwendung (Vererbung/Partials) ohne nennenswerten
 Mehraufwand liefert und sich nahtlos in Slim 4 integriert. Konkret genutzt werden ein 
-zentrales Vererbungslayout, Blöcke und Includes, globale Variablen für L
-ayout/Session/Konfiguration sowie die eingebauten Filter für Datum, Text und Formatierung.
+zentrales Vererbungslayout, Blöcke und Includes, globale Variablen für 
+Layout/Session/Konfiguration sowie die eingebauten Filter für Datum, Text und Formatierung.
 
 ### Setup
 
