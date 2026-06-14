@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Startseite/Dashboard: Übersicht, Geburtstags-Reminder und Kennzahlen.
+ */
+
 namespace App\Controllers;
 
 use App\Database;

@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Admin-Bereich: Übersicht sowie Lesen und Speichern der App-Einstellungen.
+ */
+
 namespace App\Controllers;
 
 use App\Database;

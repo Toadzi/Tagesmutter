@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Kontakte je Kind (Eltern/Abholberechtigte): Anlegen, Bearbeiten und Löschen.
+ */
+
 namespace App\Controllers;
 
 use App\Database;

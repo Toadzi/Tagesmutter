@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Datenzugriff für Kinder (z. B. einzelnen Datensatz per ID laden).
+ */
+
 namespace App\Repositories;
 
 use App\Database;

@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Helfer für HTTP-Weiterleitungen auf interne Pfade (berücksichtigt APP_BASE_PATH).
+ */
+
 namespace App\Http;
 
 use Psr\Http\Message\ResponseInterface as Response;

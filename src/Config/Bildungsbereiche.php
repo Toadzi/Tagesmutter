@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Zentrale Konstanten der Bildungsbereiche (Schlüssel, Klartext-Labels, Emojis) für Tagebuch, Meilensteine und Berichte.
+ */
+
 namespace App\Config;
 
 /**

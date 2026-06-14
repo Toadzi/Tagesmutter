@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Unfallprotokoll je Kind und global: Liste, Anlegen, Anzeigen, Bearbeiten, Löschen und PDF-Export.
+ */
+
 namespace App\Controllers;
 
 use App\Database;

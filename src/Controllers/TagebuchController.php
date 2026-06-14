@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Tagebuch je Kind: Liste/Filter, Eintrag anlegen/bearbeiten/löschen, Foto-Upload, optional als Meilenstein.
+ */
+
 namespace App\Controllers;
 
 use App\Config\Bildungsbereiche;

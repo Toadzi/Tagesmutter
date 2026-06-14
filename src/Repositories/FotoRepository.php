@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Datenzugriff für Fotos: Abfragen je Kind bzw. Tagebucheintrag, inkl. Gruppierung.
+ */
+
 namespace App\Repositories;
 
 use App\Database;

@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Textbausteine (Admin): verwalten, sortieren sowie Import/Export für die Berichtserstellung.
+ */
+
 namespace App\Controllers;
 
 use App\Config\Bildungsbereiche;

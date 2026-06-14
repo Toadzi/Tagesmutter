@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Kinder-Stammdaten: Liste, Anlegen, Detailansicht (Tabs), Bearbeiten, Löschen und Profilfoto-Upload.
+ */
+
 namespace App\Controllers;
 
 use App\Database;

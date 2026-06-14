@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Benutzerverwaltung (Admin): Konten und Rollen anlegen, bearbeiten und löschen.
+ */
+
 namespace App\Controllers;
 
 use App\Database;

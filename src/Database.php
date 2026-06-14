@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Zentrale PDO-Datenbankverbindung (SQLite) und Migrations-Runner für das Schema.
+ */
+
 namespace App;
 
 use PDO;

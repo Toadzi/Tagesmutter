@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Authentifizierungs-Middleware: erzwingt Login und prüft Rollenrechte (Admin/Eltern/Leserecht); Eltern sehen nur das eigene Kind.
+ */
+
 namespace App\Middleware;
 
 use App\Http\Redirect;

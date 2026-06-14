@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Foto-Portfolio je Kind: Ansicht, Upload mit Thumbnail, Bearbeiten, Löschen und PDF-Export.
+ */
+
 namespace App\Controllers;
 
 use App\Database;

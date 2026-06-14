@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Authentifizierung: Login-Formular, Login-Prüfung (bcrypt) und Logout.
+ */
+
 namespace App\Controllers;
 
 use App\Database;

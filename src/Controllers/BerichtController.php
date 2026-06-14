@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Entwicklungsberichte: Liste, Erstellen (mit Textbausteinen/Tagebuch/Meilensteinen), Bearbeiten und PDF-Export.
+ */
+
 namespace App\Controllers;
 
 use App\Config\Bildungsbereiche;

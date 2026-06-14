@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Anwesenheit je Kind: Monatsansicht, Speichern, Schnell-Check-in/-out sowie PDF-/CSV-Export.
+ */
+
 namespace App\Controllers;
 
 use App\Database;

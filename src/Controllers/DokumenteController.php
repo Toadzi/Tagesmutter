@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Dokumentenablage je Kind: Upload, Download und Löschen von Dateien.
+ */
+
 namespace App\Controllers;
 
 use App\Database;

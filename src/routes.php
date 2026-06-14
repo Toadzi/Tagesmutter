@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Zentrale Routendefinition – ordnet URLs den Controller-Methoden zu (Auth, Kinder, Tagebuch, Portfolio, Anwesenheit, Berichte, Unfälle, Admin).
+ */
+
 use App\Controllers\KinderController;
 use App\Controllers\DashboardController;
 use App\Controllers\TagebuchController;
