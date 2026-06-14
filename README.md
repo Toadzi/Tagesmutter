@@ -57,6 +57,13 @@ hier alles vollständig an einem Ort befindet (betrifft WebApp).*
   * Push-/E-Mail-Benachrichtigungen an Eltern – aus Zeitgründen zurückgestellt.
   * Echtzeit-Kommunikation/Chat – Scope-Reduktion zugunsten der Kerndokumentation.
 
+* **Warum Twig und wie wird es eingesetzt?**
+
+Twig wird eingesetzt, weil es Sicherheit (automatisches Escaping), saubere Trennung
+von Logik und Darstellung sowie Wiederverwendung (Vererbung/Partials) ohne nennenswerten
+Mehraufwand liefert und sich nahtlos in Slim 4 integriert. Konkret genutzt werden ein 
+zentrales Vererbungslayout, Blöcke und Includes, globale Variablen für L
+ayout/Session/Konfiguration sowie die eingebauten Filter für Datum, Text und Formatierung.
 
 ### Setup
 
@@ -191,9 +198,10 @@ Injection), DomPDF (PDF-Export), Intervention Image / GD (Bildbearbeitung), Boot
   (Routing → Controller → Repository/Service → Datenbank → Template) aufzubauen. Besonders
   wertvoll war das Refactoring hin zu wiederverwendbaren Repositories/Services, wodurch
   Code-Duplikate deutlich reduziert wurden. Zusätzlich habe ich mein Wissen mit dem Umgang mit 
-  KI (präzises Prompting etc.) weiter ausbauen können. Im Laufe des UX-Designs ist im A/B Testing
-  aufgefallen, dass ich ein paar wichtige Features nicht bedacht hatte (Testpersonen ist das sofort aufgefallen).
-  Dadurch habe ich den Wert von frühem Testen mit Testpersonen erkannt und werde das in der Zukunft öfters anwenden.
+  KI (präzises Prompting etc.) weiter ausbauen können. Im Laufe des UX-Designs ist im
+  A/B Testing aufgefallen, dass ich ein paar wichtige Features nicht bedacht hatte
+  (Testpersonen ist das sofort aufgefallen). Dadurch habe ich den Wert von frühem Testen mit
+  Testpersonen erkannt und werde das in der Zukunft öfters anwenden.
 
 * **Herausforderungen & Lösungen:**
   Trennung von Darstellung und Logik konsequent über Twig (automatisches Escaping als
