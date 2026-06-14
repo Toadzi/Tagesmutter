@@ -191,11 +191,13 @@ Injection), DomPDF (PDF-Export), Intervention Image / GD (Bildbearbeitung), Boot
   (Routing → Controller → Repository/Service → Datenbank → Template) aufzubauen. Besonders
   wertvoll war das Refactoring hin zu wiederverwendbaren Repositories/Services, wodurch
   Code-Duplikate deutlich reduziert wurden. Zusätzlich habe ich mein Wissen mit dem Umgang mit 
-  KI (präzises Prompting etc.) weiter ausbauen können
+  KI (präzises Prompting etc.) weiter ausbauen können. Im Laufe des UX-Designs ist im A/B Testing
+  aufgefallen, dass ich ein paar wichtige Features nicht bedacht hatte (Testpersonen ist das sofort aufgefallen).
+  Dadurch habe ich den Wert von frühem Testen mit Testpersonen erkannt und werde das in der Zukunft öfters anwenden.
 
 * **Herausforderungen & Lösungen:**
-  * Trennung von Darstellung und Logik konsequent über Twig (automatisches Escaping als
-    XSS-Schutz, zentrale Layout-Vererbung). Siehe `docs/Templating-Twig.md`.
+  Trennung von Darstellung und Logik konsequent über Twig (automatisches Escaping als
+  XSS-Schutz, zentrale Layout-Vererbung). Siehe `docs/Templating-Twig.md`.
 
 * **KI-Einsatz:**
   Für Refactoring (Beseitigung von Code-Duplikaten, Einführung von Repositories/Services),
