@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Zweck: Einstiegspunkt (Front Controller): startet Session, baut DI-Container und Twig auf, registriert Middleware, führt Migrationen aus und lädt die Routen.
+ */
+
 use App\Config\Bildungsbereiche;
 use App\Database;
 use App\Middleware\AuthMiddleware;
